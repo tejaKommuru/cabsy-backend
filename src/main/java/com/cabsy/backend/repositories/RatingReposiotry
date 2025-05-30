@@ -1,0 +1,31 @@
+// src/main/java/com/cabsy/backend/repositories/RatingRepository.java
+package com.cabsy.backend.repositories;
+
+import com.cabsy.backend.models.Rating;
+import com.cabsy.backend.models.Ride;
+import com.cabsy.backend.models.User;
+import com.cabsy.backend.models.Driver;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+import java.util.List;
+import java.util.Optional;
+
+@Repository
+public interface RatingRepository extends JpaRepository<Rating, Long> {
+
+    // Find a rating by its associated ride (should be unique per ride)
+    Optional<Rating> findByRide(Ride ride);
+
+    // Find ratings given by a specific user
+    List<Rating> findByFromUser(User fromUser);
+
+    // Find ratings received by a specific driver
+    List<Rating> findByToDriver(Driver toDriver);
+
+    // Find ratings with a score greater than or equal to a value
+    List<Rating> findByScoreGreaterThanEqual(Integer score);
+
+    // Find ratings for a specific driver with a score greater than or equal to a value
+    List<Rating> findByToDriverAndScoreGreaterThanEqual(Driver toDriver, Integer score);
+}
