@@ -4,3 +4,13 @@ cors:
   allowedHeaders: '*'
   allowedCredentials: false
   corsConfiguration: '/**'
+
+logging:
+  level:
+    root: WARN                                   # Set a default level for all logs. WARN is often a good start for less noise.
+    org.springframework: INFO                    # Keep Spring's core messages at INFO (e.g., startup info)
+    org.springframework.web: INFO                # Keep web related logs at INFO
+    org.springframework.security: INFO           # Keep Spring Security logs at INFO for now (useful when debugging security)
+    org.hibernate: WARN                          # Suppress verbose Hibernate SQL generation INFOs
+    com.zaxxer.hikari: WARN                      # Suppress Hikari connection pool INFOs
+    com.cabsy.backend: INFO                      # Keep your own application's logs at INFO (or DEBUG if you want more detail)
