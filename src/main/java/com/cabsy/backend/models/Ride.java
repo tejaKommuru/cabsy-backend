@@ -5,11 +5,10 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "rides") // Maps to the 'rides' table in SQL
+@Table(name = "rides")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -20,66 +19,82 @@ public class Ride {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
-    private User user; // The user who booked the ride
+    private User user;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "driver_id") // Can be null if no driver assigned yet
-    private Driver driver; // The driver assigned to the ride
+    @JoinColumn(name = "driver_id") // Can be null if not yet assigned
+    private Driver driver;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "vehicle_id") // Can be null if no vehicle assigned yet
-    private Cab vehicle; // The specific vehicle used for the ride
+    @JoinColumn(name = "cab_id") // Can be null if not yet assigned
+    private Cab cab;
 
-    @Column(name = "pickup_location_lat", nullable = false)
-    private Double pickupLocationLat;
+    @Column(nullable = false)
+    private Double pickupLat;
 
-    @Column(name = "pickup_location_lon", nullable = false)
-    private Double pickupLocationLon;
+    @Column(nullable = false)
+    private Double pickupLon;
 
-    @Column(name = "dropoff_location_lat", nullable = false)
-    private Double dropoffLocationLat;
+    @Column(nullable = false)
+    private Double destinationLat;
 
-    @Column(name = "dropoff_location_lon", nullable = false)
-    private Double dropoffLocationLon;
+    @Column(nullable = false)
+    private Double destinationLon;
 
-    @Column(name = "pickup_address", nullable = false, length = 255)
-    private String pickupAddress;
+    @Column(length = 255)
+    private String pickupAddress; // Optional: Store formatted address
 
-    @Column(name = "dropoff_address", nullable = false, length = 255)
-    private String dropoffAddress;
-
-    @Column(name = "booking_time", nullable = false, updatable = false)
-    private LocalDateTime bookingTime;
-
-    @Column(name = "start_time") // Can be null until ride starts
-    private LocalDateTime startTime;
-
-    @Column(name = "end_time") // Can be null until ride ends
-    private LocalDateTime endTime;
-
-    @Column(name = "fare", nullable = false, precision = 10, scale = 2)
-    private BigDecimal fare;
+    @Column(length = 255)
+    private String destinationAddress; // Optional: Store formatted address
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
-    private RideStatus status; // e.g., BOOKED, IN_PROGRESS, COMPLETED
+    private RideStatus status;
 
-    @Column(name = "payment_status", nullable = false)
-    @Enumerated(EnumType.STRING)
-    private PaymentStatus paymentStatus; // e.g., PENDING, PAID, FAILED
+    @Column(nullable = false)
+    private Double estimatedFare;
+
+    @Column
+    private Double actualFare; // Set after completion
+
+    @Column(nullable = false)
+    private LocalDateTime requestTime;
+
+    @Column
+    private LocalDateTime startTime; // When ride begins
+
+    @Column
+    private LocalDateTime endTime; // When ride ends
+
+    // One-to-one relationship with Payment
+    @OneToOne(mappedBy = "ride", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    private Payment payment;
+
+    // One-to-one relationship with Rating
+    @OneToOne(mappedBy = "ride", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    private Rating rating;
+
+
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+
+    @Column(name = "updated_at", nullable = false)
+    private LocalDateTime updatedAt;
 
     @PrePersist
     protected void onCreate() {
-        this.bookingTime = LocalDateTime.now();
+        this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
         if (this.status == null) {
-            this.status = RideStatus.BOOKED; // Default status for new rides
+            this.status = RideStatus.REQUESTED;
         }
-        if (this.paymentStatus == null) {
-            this.paymentStatus = PaymentStatus.PENDING; // Default payment status
+        if (this.requestTime == null) {
+            this.requestTime = LocalDateTime.now();
         }
-        // Fare might be calculated by service later, or set to 0.0 initially
-        if (this.fare == null) {
-            this.fare = BigDecimal.ZERO;
-        }
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        this.updatedAt = LocalDateTime.now();
     }
 }

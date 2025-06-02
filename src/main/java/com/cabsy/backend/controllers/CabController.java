@@ -1,128 +1,102 @@
 // src/main/java/com/cabsy/backend/controllers/CabController.java
 package com.cabsy.backend.controllers;
 
+import com.cabsy.backend.dtos.ApiResponse; // Import the ApiResponse DTO
 import com.cabsy.backend.models.Cab;
 import com.cabsy.backend.models.CabStatus;
 import com.cabsy.backend.services.CabService;
-
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
-import java.util.Optional;
 
 @RestController
-@RequestMapping("/api/cabs") // Base path for all cab-related endpoints
+@RequestMapping("/api/cabs")
 public class CabController {
 
     private final CabService cabService;
 
-    @Autowired
     public CabController(CabService cabService) {
         this.cabService = cabService;
     }
 
-    // POST /api/cabs
-    // Request Body Example:
-    // {
-    // "driver": {"id": 1}, // Provide existing driver ID
-    // "make": "Toyota",
-    // "model": "Innova",
-    // "licensePlate": "KA01AB1234",
-    // "vehicleType": "SUV",
-    // "capacity": 7,
-    // "color": "White",
-    // "manufacturingYear": "2020",
-    // "status": "IN_SERVICE", // Optional, will default if not provided in service
-    // "insuranceDetails": "Policy123",
-    // "registrationDetails": "Reg456"
-    // }
     @PostMapping
-    public ResponseEntity<Cab> createCab(@RequestBody Cab cab) {
+    public ResponseEntity<ApiResponse<Cab>> createCab(@RequestBody Cab cab) {
         try {
             Cab createdCab = cabService.createCab(cab);
-            return new ResponseEntity<>(createdCab, HttpStatus.CREATED);
-        } catch (IllegalArgumentException e) {
-            // Handle cases where driver ID is missing or invalid
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        } catch (Exception e) {
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+            return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success("Cab created successfully", createdCab));
+        } catch (RuntimeException e) {
+            // This could be a specific exception like DuplicateLicensePlateException
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponse.error("Failed to create cab", e.getMessage()));
         }
     }
 
-    // GET /api/cabs
-    @GetMapping
-    public ResponseEntity<List<Cab>> getAllCabs() {
-        List<Cab> cabs = cabService.getAllCabs();
-        return new ResponseEntity<>(cabs, HttpStatus.OK);
-    }
-
-    // GET /api/cabs/{id}
     @GetMapping("/{id}")
-    public ResponseEntity<Cab> getCabById(@PathVariable Long id) {
-        Optional<Cab> cab = cabService.getCabById(id);
-        return cab.map(value -> new ResponseEntity<>(value, HttpStatus.OK))
-                .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
+    public ResponseEntity<ApiResponse<Cab>> getCabById(@PathVariable Long id) {
+        return cabService.getCabById(id)
+                .map(cab -> ResponseEntity.ok(ApiResponse.success("Cab fetched successfully", cab)))
+                .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.error("Cab not found", "Cab with ID " + id + " does not exist")));
     }
 
-    // PUT /api/cabs/{id}
-    // Request Body is similar to POST
+    @GetMapping
+    public ResponseEntity<ApiResponse<List<Cab>>> getAllCabs() {
+        List<Cab> cabs = cabService.getAllCabs();
+        return ResponseEntity.ok(ApiResponse.success("Cabs fetched successfully", cabs));
+    }
+
     @PutMapping("/{id}")
-    public ResponseEntity<Cab> updateCab(@PathVariable Long id, @RequestBody Cab cabDetails) {
+    public ResponseEntity<ApiResponse<Cab>> updateCab(@PathVariable Long id, @RequestBody Cab cabDetails) {
         try {
             Cab updatedCab = cabService.updateCab(id, cabDetails);
-            return new ResponseEntity<>(updatedCab, HttpStatus.OK);
+            return ResponseEntity.ok(ApiResponse.success("Cab updated successfully", updatedCab));
         } catch (RuntimeException e) {
-            if (e.getMessage().contains("not found")) {
-                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-            }
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        } catch (Exception e) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            // This could be ResourceNotFoundException or DuplicateLicensePlateException on update
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponse.error("Failed to update cab", e.getMessage()));
         }
     }
 
-    // DELETE /api/cabs/{id}
     @DeleteMapping("/{id}")
-    public ResponseEntity<HttpStatus> deleteCab(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<Void>> deleteCab(@PathVariable Long id) {
         try {
             cabService.deleteCab(id);
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT); // 204 No Content for successful deletion
-        } catch (Exception e) {
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).body(ApiResponse.success("Cab deleted successfully", null));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.error("Failed to delete cab", e.getMessage()));
         }
     }
 
-    // --- Custom Endpoints for filtering/searching ---
-
-    // GET /api/cabs/status/{status}
     @GetMapping("/status/{status}")
-    public ResponseEntity<List<Cab>> getCabsByStatus(@PathVariable String status) {
+    public ResponseEntity<ApiResponse<List<Cab>>> getCabsByStatus(@PathVariable CabStatus status) {
+        List<Cab> cabs = cabService.getCabsByStatus(status);
+        return ResponseEntity.ok(ApiResponse.success("Cabs by status fetched successfully", cabs));
+    }
+
+    @PutMapping("/{cabId}/assign/{driverId}")
+    public ResponseEntity<ApiResponse<Cab>> assignCabToDriver(@PathVariable Long cabId, @PathVariable Long driverId) {
         try {
-            CabStatus cabStatus = CabStatus.valueOf(status.toUpperCase()); // Convert string to enum
-            List<Cab> cabs = cabService.getCabsByStatus(cabStatus);
-            return new ResponseEntity<>(cabs, HttpStatus.OK);
-        } catch (IllegalArgumentException e) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST); // Invalid status string
-        } catch (Exception e) {
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+            Cab updatedCab = cabService.assignCabToDriver(cabId, driverId);
+            return ResponseEntity.ok(ApiResponse.success("Cab assigned to driver successfully", updatedCab));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponse.error("Failed to assign cab to driver", e.getMessage()));
         }
     }
 
-    // GET /api/cabs/driver/{driverId}
-    @GetMapping("/driver/{driverId}")
-    public ResponseEntity<List<Cab>> getCabsByDriver(@PathVariable Long driverId) {
-        List<Cab> cabs = cabService.getCabsByDriver(driverId);
-        return new ResponseEntity<>(cabs, HttpStatus.OK);
-    }
-
-    // GET /api/cabs/license/{licensePlate}
-    @GetMapping("/license/{licensePlate}")
-    public ResponseEntity<Cab> getCabByLicensePlate(@PathVariable String licensePlate) {
-        Optional<Cab> cab = cabService.getCabByLicensePlate(licensePlate);
-        return cab.map(value -> new ResponseEntity<>(value, HttpStatus.OK))
-                .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
+    @PutMapping("/{cabId}/updateStatus")
+    public ResponseEntity<ApiResponse<Cab>> updateCabStatus(@PathVariable Long cabId, @RequestParam CabStatus newStatus) {
+        try {
+            Cab updatedCab = cabService.updateCabStatus(cabId, newStatus);
+            return ResponseEntity.ok(ApiResponse.success("Cab status updated successfully", updatedCab));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponse.error("Failed to update cab status", e.getMessage()));
+        }
     }
 }

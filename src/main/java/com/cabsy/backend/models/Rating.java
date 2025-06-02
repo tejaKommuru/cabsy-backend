@@ -8,7 +8,7 @@ import lombok.AllArgsConstructor;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "ratings") // Maps to the 'ratings' table in SQL
+@Table(name = "ratings")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -17,29 +17,44 @@ public class Rating {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @OneToOne(fetch = FetchType.LAZY) // One rating per ride from the user
-    @JoinColumn(name = "ride_id", nullable = false, unique = true)
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "ride_id", unique = true, nullable = false)
     private Ride ride;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "from_user_id", nullable = false)
-    private User fromUser; // The user who gave the rating
+    @JoinColumn(name = "user_id") // The user who gave the rating
+    private User user;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "to_driver_id", nullable = false)
-    private Driver toDriver; // The driver who received the rating
+    @JoinColumn(name = "driver_id") // The driver who received the rating
+    private Driver driver;
 
     @Column(nullable = false)
-    private Integer score; // Rating score, e.g., 1 to 5
+    private Integer stars; // Rating from 1 to 5
 
-    @Column(columnDefinition = "TEXT") // For longer text
-    private String comments; // Optional detailed feedback
+    @Column(length = 500)
+    private String comment; // Optional comment
 
-    @Column(nullable = false)
-    private LocalDateTime timestamp;
+    @Column(name = "rating_time", nullable = false)
+    private LocalDateTime ratingTime;
+
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+
+    @Column(name = "updated_at", nullable = false)
+    private LocalDateTime updatedAt;
 
     @PrePersist
     protected void onCreate() {
-        this.timestamp = LocalDateTime.now();
+        this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
+        if (this.ratingTime == null) {
+            this.ratingTime = LocalDateTime.now();
+        }
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        this.updatedAt = LocalDateTime.now();
     }
 }

@@ -1,8 +1,9 @@
+// src/main/java/com/cabsy/backend/models/CabStatus.java
 package com.cabsy.backend.models;
-public enum CabStatus {
-    IN_SERVICE,          // Ready for rides
-    UNDER_MAINTENANCE,   // Temporarily out of service for repairs/maintenance
-    OUT_OF_SERVICE,      // Permanently out of service or disabled
-    PENDING_APPROVAL     // Newly registered cab awaiting verification
-}
 
+public enum CabStatus {
+    AVAILABLE,    // Ready to be assigned to a driver or waiting for a ride
+    ON_TRIP,      // Currently on a ride
+    MAINTENANCE,  // Out of service for maintenance
+    DISABLED      // Permanently disabled
+}

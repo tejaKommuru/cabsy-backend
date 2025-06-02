@@ -5,11 +5,10 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "payments") // Maps to the 'payments' table in SQL
+@Table(name = "payments")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -18,35 +17,46 @@ public class Payment {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @OneToOne(fetch = FetchType.LAZY) // One payment per ride
-    @JoinColumn(name = "ride_id", nullable = false, unique = true) // ride_id is unique
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "ride_id", unique = true, nullable = false)
     private Ride ride;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user; // The user who made the payment
+    @Column(nullable = false)
+    private Double amount;
 
-    @Column(nullable = false, precision = 10, scale = 2)
-    private BigDecimal amount;
+    @Column(nullable = false)
+    private LocalDateTime paymentTime;
 
     @Column(nullable = false, length = 50)
-    private String method; // e.g., "Credit Card", "UPI", "Cash"
-
-    @Column(name = "transaction_id", unique = true, length = 255)
-    private String transactionId; // From payment gateway
+    private String paymentMethod; // e.g., "Credit Card", "Cash", "Wallet"
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
-    private PaymentStatus status; // e.g., PENDING, PAID, FAILED
+    private PaymentStatus status; // e.g., PENDING, COMPLETED, FAILED
 
-    @Column(nullable = false)
-    private LocalDateTime timestamp;
+    @Column(name = "transaction_id", length = 255)
+    private String transactionId; // ID from payment gateway
+
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+
+    @Column(name = "updated_at", nullable = false)
+    private LocalDateTime updatedAt;
 
     @PrePersist
     protected void onCreate() {
-        this.timestamp = LocalDateTime.now();
-        if (this.status == null) {
-            this.status = PaymentStatus.PENDING; // Default status
+        this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
+        if (this.paymentTime == null) {
+            this.paymentTime = LocalDateTime.now();
         }
+        if (this.status == null) {
+            this.status = PaymentStatus.PENDING;
+        }
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        this.updatedAt = LocalDateTime.now();
     }
 }

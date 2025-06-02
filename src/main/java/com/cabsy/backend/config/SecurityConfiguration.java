@@ -7,16 +7,18 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder; // NEW IMPORT
+import org.springframework.security.crypto.password.PasswordEncoder; // NEW IMPORT
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.CorsConfigurationSource; // <-- New Import
+import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.Arrays;
 import java.util.List;
 
 @Configuration
-@EnableWebSecurity // Enables Spring Security's web security features
+@EnableWebSecurity
 public class SecurityConfiguration {
 
     @Value("${cors.allowedOrigin}")
@@ -34,33 +36,39 @@ public class SecurityConfiguration {
     @Value("${cors.corsConfiguration}")
     private String corsConfigurationPath;
 
-    // Defines the security filter chain. This is crucial for Spring Security.
+    // This bean is CRUCIAL for hashing passwords and will be injected into UserServiceImpl and DriverServiceImpl
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            .csrf(AbstractHttpConfigurer::disable) // Disable CSRF for REST APIs (unless you handle it on frontend)
+            .csrf(AbstractHttpConfigurer::disable)
             .authorizeHttpRequests(authorize -> authorize
-                .anyRequest().permitAll() // Temporarily allow all requests (no authentication/authorization yet)
+                // Allow registration and login endpoints without authentication
+                .requestMatchers("/api/auth/**").permitAll()
+                // Temporarily allow all other requests for now (we'll secure these later)
+                .anyRequest().permitAll()
             )
-            .cors(cors -> cors.configurationSource(corsConfigurationSource())); // Correctly use the bean
+            .cors(cors -> cors.configurationSource(corsConfigurationSource()));
 
         return http.build();
     }
 
-    // This is the missing bean that defines the CORS configuration source
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         CorsConfiguration config = new CorsConfiguration();
 
-        // Convert comma-separated string to list for allowedMethods and allowedHeaders
         config.setAllowedOrigins(List.of(allowedOrigin));
         config.setAllowedMethods(Arrays.asList(allowedMethods.split(",")));
         config.setAllowedHeaders(Arrays.asList(allowedHeaders.split(",")));
         config.setAllowCredentials(allowedCredentials);
-        config.addExposedHeader("Authorization"); // Expose Authorization header if your frontend needs to read it
+        config.addExposedHeader("Authorization");
 
         source.registerCorsConfiguration(corsConfigurationPath, config);
-        return source; // Return the CorsConfigurationSource
+        return source;
     }
 }
