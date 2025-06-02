@@ -15,26 +15,19 @@ import lombok.Data;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 
-// --- New Enum for Cab Status ---
-// This is a good practice to define fixed states for a cab's operational status.
 
 
 @Entity
-@Table(name = "vehicles") // Changed to 'vehicles' as it's a more generic term and aligns with LLD
+@Table(name = "vehicles") 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Cab { // Renamed from Cab to Vehicle might be better in the long run, but Cab works
+public class Cab { 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // --- Relationship to Driver (Foreign Key) ---
-    // A Cab belongs to a Driver. Using a ManyToOne relationship is common
-    // if a driver might operate multiple cabs (though typically one active at a time)
-    // or if you want to track which driver is currently assigned to this cab.
-    // If a Cab is *always* assigned to one specific driver, and a Driver *always* has one specific Cab,
-    // a OneToOne might be more appropriate. For now, ManyToOne is flexible.
+ 
     @ManyToOne // Many cabs can belong to one driver
     @JoinColumn(name = "driver_id", nullable = false) // This creates a foreign key column named 'driver_id'
     private Driver driver; // Reference to the Driver entity
