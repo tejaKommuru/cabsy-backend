@@ -1,6 +1,8 @@
 # application.yml
 
 spring:
+  main:
+    banner-mode: off
   application:
     name: cabsy-backend
   datasource:
