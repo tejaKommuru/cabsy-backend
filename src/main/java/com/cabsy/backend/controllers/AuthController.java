@@ -7,6 +7,8 @@ import com.cabsy.backend.dtos.DriverResponseDTO;
 import com.cabsy.backend.dtos.LoginDTO;
 import com.cabsy.backend.dtos.UserRegistrationDTO;
 import com.cabsy.backend.dtos.UserResponseDTO;
+import com.cabsy.backend.models.Driver; // Import Driver model for driver login
+import com.cabsy.backend.models.User;   // Import User model for user login
 import com.cabsy.backend.services.DriverService;
 import com.cabsy.backend.services.UserService;
 import org.springframework.http.HttpStatus;
@@ -53,13 +55,21 @@ public class AuthController {
     }
 
     @PostMapping("/user/login")
-    public ResponseEntity<ApiResponse<String>> loginUser(@Valid @RequestBody LoginDTO loginDTO) {
-        // This is a basic login check. For real-world, you'd generate a JWT token here.
-        return (ResponseEntity<ApiResponse<String>>) userService.findUserByEmail(loginDTO.getEmail())
+    public ResponseEntity<ApiResponse<UserResponseDTO>> loginUser(@Valid @RequestBody LoginDTO loginDTO) {
+        return (ResponseEntity<ApiResponse<UserResponseDTO>>) userService.findUserByEmail(loginDTO.getEmail())
             .map(user -> {
                 if (passwordEncoder.matches(loginDTO.getPassword(), user.getPassword())) {
-                    // TODO: Implement JWT token generation and return it
-                    return ResponseEntity.ok(ApiResponse.success("User logged in successfully", "TEMP_USER_TOKEN"));
+                    // Create UserResponseDTO from the authenticated User entity
+                    UserResponseDTO userResponse = new UserResponseDTO(
+                        user.getId(),
+                        user.getName(),
+                        user.getEmail(),
+                        user.getPhoneNumber(),
+                        user.getRating()
+                        // If you had a JWT token, you'd add it to UserResponseDTO and return it here
+                        // user.getJwtToken()
+                    );
+                    return ResponseEntity.ok(ApiResponse.success("User logged in successfully", userResponse));
                 } else {
                     return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ApiResponse.error("Login failed", "Invalid credentials"));
                 }
@@ -68,13 +78,23 @@ public class AuthController {
     }
 
     @PostMapping("/driver/login")
-    public ResponseEntity<ApiResponse<String>> loginDriver(@Valid @RequestBody LoginDTO loginDTO) {
-        // This is a basic login check. For real-world, you'd generate a JWT token here.
-        return (ResponseEntity<ApiResponse<String>>) driverService.findDriverByEmail(loginDTO.getEmail())
+    public ResponseEntity<ApiResponse<DriverResponseDTO>> loginDriver(@Valid @RequestBody LoginDTO loginDTO) {
+        return (ResponseEntity<ApiResponse<DriverResponseDTO>>) driverService.findDriverByEmail(loginDTO.getEmail())
             .map(driver -> {
                 if (passwordEncoder.matches(loginDTO.getPassword(), driver.getPassword())) {
-                    // TODO: Implement JWT token generation and return it
-                    return ResponseEntity.ok(ApiResponse.success("Driver logged in successfully", "TEMP_DRIVER_TOKEN"));
+                    // Create DriverResponseDTO from the authenticated Driver entity
+                    DriverResponseDTO driverResponse = new DriverResponseDTO(
+                        driver.getId(),
+                        driver.getName(),
+                        driver.getEmail(),
+                        driver.getPhoneNumber(),
+                        driver.getLicenseNumber(),
+                        driver.getStatus(),
+                        driver.getRating()
+                        // If you had a JWT token, you'd add it to DriverResponseDTO and return it here
+                        // driver.getJwtToken()
+                    );
+                    return ResponseEntity.ok(ApiResponse.success("Driver logged in successfully", driverResponse));
                 } else {
                     return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ApiResponse.error("Login failed", "Invalid credentials"));
                 }
