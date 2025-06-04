@@ -7,8 +7,6 @@ import com.cabsy.backend.dtos.DriverResponseDTO;
 import com.cabsy.backend.dtos.LoginDTO;
 import com.cabsy.backend.dtos.UserRegistrationDTO;
 import com.cabsy.backend.dtos.UserResponseDTO;
-import com.cabsy.backend.models.Driver; // Import Driver model for driver login
-import com.cabsy.backend.models.User;   // Import User model for user login
 import com.cabsy.backend.services.DriverService;
 import com.cabsy.backend.services.UserService;
 import org.springframework.http.HttpStatus;
