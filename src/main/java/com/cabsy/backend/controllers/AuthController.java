@@ -1,14 +1,6 @@
 // src/main/java/com/cabsy/backend/controllers/AuthController.java
 package com.cabsy.backend.controllers;
-
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
+ 
 import com.cabsy.backend.dtos.ApiResponse;
 import com.cabsy.backend.dtos.DriverRegistrationDTO;
 import com.cabsy.backend.dtos.DriverResponseDTO;
@@ -16,24 +8,30 @@ import com.cabsy.backend.dtos.LoginDTO;
 import com.cabsy.backend.dtos.UserRegistrationDTO;
 import com.cabsy.backend.dtos.UserResponseDTO;
 import com.cabsy.backend.services.DriverService;
-import com.cabsy.backend.services.UserService; // For DTO validation
-
-import jakarta.validation.Valid; // Needed for login check
-
+import com.cabsy.backend.services.UserService;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+import jakarta.validation.Valid; // For DTO validation
+import org.springframework.security.crypto.password.PasswordEncoder; // Needed for login check
+ 
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
-
+ 
     private final UserService userService;
     private final DriverService driverService;
     private final PasswordEncoder passwordEncoder; // Inject PasswordEncoder for login
-
+ 
     public AuthController(UserService userService, DriverService driverService, PasswordEncoder passwordEncoder) {
         this.userService = userService;
         this.driverService = driverService;
         this.passwordEncoder = passwordEncoder;
     }
-
+ 
     @PostMapping("/user/register")
     public ResponseEntity<ApiResponse<UserResponseDTO>> registerUser(@Valid @RequestBody UserRegistrationDTO registrationDTO) {
         try {
@@ -43,7 +41,7 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponse.error("User registration failed", e.getMessage()));
         }
     }
-
+ 
     @PostMapping("/driver/register")
     public ResponseEntity<ApiResponse<DriverResponseDTO>> registerDriver(@Valid @RequestBody DriverRegistrationDTO registrationDTO) {
         try {
@@ -53,7 +51,6 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponse.error("Driver registration failed", e.getMessage()));
         }
     }
-
     @PostMapping("/user/login")
     public ResponseEntity<ApiResponse<UserResponseDTO>> loginUser(@Valid @RequestBody LoginDTO loginDTO) {
         return (ResponseEntity<ApiResponse<UserResponseDTO>>) userService.findUserByEmail(loginDTO.getEmail())
@@ -76,15 +73,25 @@ public class AuthController {
             })
             .orElseGet(() -> ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ApiResponse.error("Login failed", "Invalid credentials")));
     }
-
+ 
     @PostMapping("/driver/login")
-    public ResponseEntity<ApiResponse<String>> loginDriver(@Valid @RequestBody LoginDTO loginDTO) {
-        // This is a basic login check. For real-world, you'd generate a JWT token here.
-        return (ResponseEntity<ApiResponse<String>>) driverService.findDriverByEmail(loginDTO.getEmail())
+    public ResponseEntity<ApiResponse<DriverResponseDTO>> loginDriver(@Valid @RequestBody LoginDTO loginDTO) {
+        return (ResponseEntity<ApiResponse<DriverResponseDTO>>) driverService.findDriverByEmail(loginDTO.getEmail())
             .map(driver -> {
                 if (passwordEncoder.matches(loginDTO.getPassword(), driver.getPassword())) {
-                    // TODO: Implement JWT token generation and return it
-                    return ResponseEntity.ok(ApiResponse.success("Driver logged in successfully", "TEMP_DRIVER_TOKEN"));
+                    // Create DriverResponseDTO from the authenticated Driver entity
+                    DriverResponseDTO driverResponse = new DriverResponseDTO(
+                        driver.getId(),
+                        driver.getName(),
+                        driver.getEmail(),
+                        driver.getPhoneNumber(),
+                        driver.getLicenseNumber(),
+                        driver.getStatus(),
+                        driver.getRating()
+                        // If you had a JWT token, you'd add it to DriverResponseDTO and return it here
+                        // driver.getJwtToken()
+                    );
+                    return ResponseEntity.ok(ApiResponse.success("Driver logged in successfully", driverResponse));
                 } else {
                     return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ApiResponse.error("Login failed", "Invalid credentials"));
                 }
@@ -92,3 +99,5 @@ public class AuthController {
             .orElseGet(() -> ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ApiResponse.error("Login failed", "Invalid credentials")));
     }
 }
+ 
+ 
