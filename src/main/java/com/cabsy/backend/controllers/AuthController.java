@@ -87,6 +87,8 @@ public class AuthController {
 
     @PostMapping("/change-password")
     public ResponseEntity<?> changePassword(@Valid @RequestBody ChangePasswordRequest request) {
+        
+
 
         if (request.getEmail() == null || request.getOldPassword() == null || request.getNewPassword() == null) {
             return ResponseEntity.badRequest().body("Email, old password, and new password must not be null");
