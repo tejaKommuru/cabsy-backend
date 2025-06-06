@@ -1,18 +1,23 @@
 // src/main/java/com/cabsy/backend/services/impl/DriverServiceImpl.java
 package com.cabsy.backend.services.impl;
 
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+
+import com.cabsy.backend.dtos.ChangePasswordRequest;
 import com.cabsy.backend.dtos.DriverRegistrationDTO;
 import com.cabsy.backend.dtos.DriverResponseDTO;
 import com.cabsy.backend.models.Driver;
 import com.cabsy.backend.models.DriverStatus;
 import com.cabsy.backend.repositories.DriverRepository;
 import com.cabsy.backend.services.DriverService;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Service;
+
 import jakarta.transaction.Transactional;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 public class DriverServiceImpl implements DriverService {
@@ -49,8 +54,8 @@ public class DriverServiceImpl implements DriverService {
 
         Driver savedDriver = driverRepository.save(driver);
         return new DriverResponseDTO(
-            savedDriver.getId(), savedDriver.getName(), savedDriver.getEmail(), savedDriver.getPhoneNumber(),
-            savedDriver.getLicenseNumber(), savedDriver.getStatus(), savedDriver.getRating());
+                savedDriver.getId(), savedDriver.getName(), savedDriver.getEmail(), savedDriver.getPhoneNumber(),
+                savedDriver.getLicenseNumber(), savedDriver.getStatus(), savedDriver.getRating());
     }
 
     @Override
@@ -62,16 +67,16 @@ public class DriverServiceImpl implements DriverService {
     public Optional<DriverResponseDTO> getDriverById(Long id) {
         return driverRepository.findById(id)
                 .map(driver -> new DriverResponseDTO(
-                    driver.getId(), driver.getName(), driver.getEmail(), driver.getPhoneNumber(),
-                    driver.getLicenseNumber(), driver.getStatus(), driver.getRating()));
+                        driver.getId(), driver.getName(), driver.getEmail(), driver.getPhoneNumber(),
+                        driver.getLicenseNumber(), driver.getStatus(), driver.getRating()));
     }
 
     @Override
     public List<DriverResponseDTO> getAllDrivers() {
         return driverRepository.findAll().stream()
                 .map(driver -> new DriverResponseDTO(
-                    driver.getId(), driver.getName(), driver.getEmail(), driver.getPhoneNumber(),
-                    driver.getLicenseNumber(), driver.getStatus(), driver.getRating()))
+                        driver.getId(), driver.getName(), driver.getEmail(), driver.getPhoneNumber(),
+                        driver.getLicenseNumber(), driver.getStatus(), driver.getRating()))
                 .collect(Collectors.toList());
     }
 
@@ -85,8 +90,23 @@ public class DriverServiceImpl implements DriverService {
             driver.setStatus(newStatus);
             Driver updatedDriver = driverRepository.save(driver);
             return new DriverResponseDTO(
-                updatedDriver.getId(), updatedDriver.getName(), updatedDriver.getEmail(), updatedDriver.getPhoneNumber(),
-                updatedDriver.getLicenseNumber(), updatedDriver.getStatus(), updatedDriver.getRating());
+                    updatedDriver.getId(), updatedDriver.getName(), updatedDriver.getEmail(),
+                    updatedDriver.getPhoneNumber(),
+                    updatedDriver.getLicenseNumber(), updatedDriver.getStatus(), updatedDriver.getRating());
         }).orElseThrow(() -> new RuntimeException("Driver not found with id: " + driverId));
+    }
+    
+    public String changePassword(ChangePasswordRequest requestDTO) {
+         Driver driver = driverRepository.findByEmail(requestDTO.getEmail())
+             .orElseThrow(() -> new UsernameNotFoundException("Driver not found"));
+        
+         if (!passwordEncoder.matches(requestDTO.getOldPassword(), driver.getPassword())) {
+         throw new IllegalArgumentException("Old password is incorrect");
+         }
+        
+         driver.setPassword(passwordEncoder.encode(requestDTO.getNewPassword()));
+         driverRepository.save(driver);
+        
+         return "Password changed successfully";
     }
 }

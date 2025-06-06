@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.cabsy.backend.dtos.ApiResponse;
+import com.cabsy.backend.dtos.ChangePasswordRequest;
 import com.cabsy.backend.dtos.DriverRegistrationDTO;
 import com.cabsy.backend.dtos.DriverResponseDTO;
 import com.cabsy.backend.dtos.LoginDTO;
@@ -83,4 +84,17 @@ public class AuthController {
             })
             .orElseGet(() -> ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ApiResponse.error("Login failed", "Invalid credentials")));
     }
+
+    @PostMapping("/change-password")
+    public ResponseEntity<?> changePassword(@Valid @RequestBody ChangePasswordRequest request) {
+
+        if (request.getEmail() == null || request.getOldPassword() == null || request.getNewPassword() == null) {
+            return ResponseEntity.badRequest().body("Email, old password, and new password must not be null");
+        }
+    
+        driverService.changePassword(request);
+        return ResponseEntity.ok("Password updated successfully");
+    }
+    
+
 }
