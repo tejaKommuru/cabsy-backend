@@ -14,7 +14,6 @@ public class RideResponseDTO {
     private Long id;
     private Long userId;
     private Long driverId; // Can be null
-    private Long cabId;    // Can be null
     private Double pickupLat;
     private Double pickupLon;
     private Double destinationLat;

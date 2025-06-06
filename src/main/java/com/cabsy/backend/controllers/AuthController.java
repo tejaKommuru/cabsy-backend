@@ -1,21 +1,42 @@
 // src/main/java/com/cabsy/backend/controllers/AuthController.java
 package com.cabsy.backend.controllers;
- 
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+import java.util.Map;
+
 import com.cabsy.backend.dtos.ApiResponse;
 import com.cabsy.backend.dtos.DriverRegistrationDTO;
 import com.cabsy.backend.dtos.DriverResponseDTO;
 import com.cabsy.backend.dtos.LoginDTO;
 import com.cabsy.backend.dtos.UserRegistrationDTO;
 import com.cabsy.backend.dtos.UserResponseDTO;
+import com.cabsy.backend.models.User;
 import com.cabsy.backend.services.DriverService;
+import com.cabsy.backend.services.UserService; // For DTO validation
+
+import jakarta.validation.Valid; // Needed for login check
 import com.cabsy.backend.services.UserService;
+
+import java.util.Optional;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
 import jakarta.validation.Valid; // For DTO validation
+
 import org.springframework.security.crypto.password.PasswordEncoder; // Needed for login check
  
 @RestController
@@ -31,7 +52,91 @@ public class AuthController {
         this.driverService = driverService;
         this.passwordEncoder = passwordEncoder;
     }
- 
+
+    // @PutMapping("/user/name")
+    // public User updateName(@RequestParam String name,@RequestParam String id){
+        
+    //     try{
+    //     User u = userService.updateName(name,id);
+    //     return u;
+    //     }catch(Exception e){
+    //         System.out.println("there is some error"+e);
+    //     }
+    //     return null;
+    // }
+
+    @PutMapping("/user/{field}/{id}")
+    public ResponseEntity<ApiResponse<UserResponseDTO>> updateUserInfo(
+            @RequestBody Map<String, String> requestBody,
+            @PathVariable String field,
+            @PathVariable String id) {
+        try {
+            Long userId = Long.parseLong(id);
+
+            // Handle password field separately because it requires multiple inputs
+            if ("password".equals(field)) {
+                String oldPassword = requestBody.get("oldPassword");
+                String newPassword = requestBody.get("newPassword");
+
+                if (oldPassword == null || oldPassword.trim().isEmpty() ||
+                    newPassword == null || newPassword.trim().isEmpty()) {
+                    return ResponseEntity.badRequest().body(ApiResponse.error("Validation Error", "Old and new passwords cannot be empty."));
+                }
+                // Client-side typically handles confirm-password, but you can re-check here if needed
+                // String confirmPassword = requestBody.get("confirmPassword");
+                // if (!newPassword.equals(confirmPassword)) { ... }
+
+                userService.updatePassword(oldPassword, newPassword, userId);
+                // For password change, we usually don't return the UserDTO with password.
+                // Just a success message is sufficient, or re-fetch partial user info.
+                return ResponseEntity.ok(ApiResponse.success("User password updated successfully!", null)); // Or an empty DTO if preferred
+            }
+
+            // For other fields (name, email, phone)
+            String newValue = requestBody.get(field);
+
+            // Basic null/empty check for non-password fields
+            if (newValue == null || newValue.trim().isEmpty()) {
+                return ResponseEntity.badRequest().body(ApiResponse.error("Validation Error",
+                        field.substring(0, 1).toUpperCase() + field.substring(1) + " cannot be empty."));
+            }
+
+            // Call the appropriate service method based on the 'field'
+            switch (field) {
+                case "name":
+                    userService.updateName(newValue, userId);
+                    break;
+                case "email":
+                    userService.updateEmail(newValue, userId);
+                    break;
+                case "phone":
+                    userService.updatePhoneNumber(newValue, userId);
+                    break;
+                default:
+                    return ResponseEntity.badRequest().body(ApiResponse.error("Invalid Field", "Unsupported field for update: " + field));
+            }
+
+            // Fetch the updated user data to return in the response for non-password fields
+            Optional<UserResponseDTO> updatedUserOptional = userService.getUserById(userId);
+
+            if (updatedUserOptional.isPresent()) {
+                UserResponseDTO updatedUserDTO = updatedUserOptional.get();
+                return ResponseEntity.ok(ApiResponse.success("User " + field + " updated successfully!", updatedUserDTO));
+            } else {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.error("Update failed", "User not found after update (ID: " + id + ")"));
+            }
+        } catch (NumberFormatException e) {
+            return ResponseEntity.badRequest().body(ApiResponse.error("Invalid Request", "User ID must be a valid number."));
+        } catch (IllegalArgumentException e) {
+            // Catch specific validation errors from the service layer (e.g., incorrect password, invalid format, already in use)
+            return ResponseEntity.badRequest().body(ApiResponse.error("Validation Error", e.getMessage()));
+        } catch (Exception e) {
+            System.err.println("An unexpected error occurred during user " + field + " update: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ApiResponse.error("User " + field + " update failed", "An internal server error occurred."));
+        }
+    }
+
     @PostMapping("/user/register")
     public ResponseEntity<ApiResponse<UserResponseDTO>> registerUser(@Valid @RequestBody UserRegistrationDTO registrationDTO) {
         try {
@@ -76,22 +181,12 @@ public class AuthController {
  
     @PostMapping("/driver/login")
     public ResponseEntity<ApiResponse<DriverResponseDTO>> loginDriver(@Valid @RequestBody LoginDTO loginDTO) {
+        // This is a basic login check. For real-world, you'd generate a JWT token here.
         return (ResponseEntity<ApiResponse<DriverResponseDTO>>) driverService.findDriverByEmail(loginDTO.getEmail())
-            .map(driver -> {
-                if (passwordEncoder.matches(loginDTO.getPassword(), driver.getPassword())) {
-                    // Create DriverResponseDTO from the authenticated Driver entity
-                    DriverResponseDTO driverResponse = new DriverResponseDTO(
-                        driver.getId(),
-                        driver.getName(),
-                        driver.getEmail(),
-                        driver.getPhoneNumber(),
-                        driver.getLicenseNumber(),
-                        driver.getStatus(),
-                        driver.getRating()
-                        // If you had a JWT token, you'd add it to DriverResponseDTO and return it here
-                        // driver.getJwtToken()
-                    );
-                    return ResponseEntity.ok(ApiResponse.success("Driver logged in successfully", driverResponse));
+            .map(driverDTO -> {
+                if (passwordEncoder.matches(loginDTO.getPassword(), driverDTO.getPassword())) {
+                    // TODO: Implement JWT token generation and return it
+                    return ResponseEntity.ok(ApiResponse.success("Driver logged in successfull",driverDTO));
                 } else {
                     return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ApiResponse.error("Login failed", "Invalid credentials"));
                 }

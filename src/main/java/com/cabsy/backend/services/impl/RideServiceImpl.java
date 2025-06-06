@@ -3,14 +3,13 @@ package com.cabsy.backend.services.impl;
 
 import com.cabsy.backend.dtos.RideRequestDTO;
 import com.cabsy.backend.dtos.RideResponseDTO;
-import com.cabsy.backend.models.Cab;
-import com.cabsy.backend.models.CabStatus;
+
 import com.cabsy.backend.models.Driver;
 import com.cabsy.backend.models.DriverStatus;
 import com.cabsy.backend.models.Ride;
 import com.cabsy.backend.models.RideStatus;
 import com.cabsy.backend.models.User;
-import com.cabsy.backend.repositories.CabRepository;
+
 import com.cabsy.backend.repositories.DriverRepository;
 import com.cabsy.backend.repositories.RideRepository;
 import com.cabsy.backend.repositories.UserRepository;
@@ -28,14 +27,14 @@ public class RideServiceImpl implements RideService {
     private final RideRepository rideRepository;
     private final UserRepository userRepository;
     private final DriverRepository driverRepository;
-    private final CabRepository cabRepository;
+   
 
     public RideServiceImpl(RideRepository rideRepository, UserRepository userRepository,
-                           DriverRepository driverRepository, CabRepository cabRepository) {
+                           DriverRepository driverRepository) {
         this.rideRepository = rideRepository;
         this.userRepository = userRepository;
         this.driverRepository = driverRepository;
-        this.cabRepository = cabRepository;
+       
     }
 
     @Override
@@ -73,32 +72,25 @@ public class RideServiceImpl implements RideService {
                 .orElseThrow(() -> new RuntimeException("Ride not found with id: " + rideId));
         Driver driver = driverRepository.findById(driverId)
                 .orElseThrow(() -> new RuntimeException("Driver not found with id: " + driverId));
-        Cab cab = cabRepository.findById(cabId)
-                .orElseThrow(() -> new RuntimeException("Cab not found with id: " + cabId));
+        
 
         // Basic checks:
-        if (ride.getDriver() != null || ride.getCab() != null) {
+        if (ride.getDriver() != null ) {
             throw new RuntimeException("Ride already has a driver/cab assigned.");
         }
         if (driver.getStatus() != DriverStatus.AVAILABLE) {
             throw new RuntimeException("Driver is not available for a ride.");
         }
-        if (cab.getStatus() != CabStatus.AVAILABLE) {
-            throw new RuntimeException("Cab is not available.");
-        }
-        if (!driver.getCab().getId().equals(cabId)) {
-             throw new RuntimeException("Assigned cab does not belong to the assigned driver.");
-        }
+     
+    
 
 
         ride.setDriver(driver);
-        ride.setCab(cab);
+    
         ride.setStatus(RideStatus.ACCEPTED);
         driver.setStatus(DriverStatus.OCCUPIED); // Driver is now occupied
-        cab.setStatus(CabStatus.ON_TRIP); // Cab is now on trip
 
-        driverRepository.save(driver); // Update driver status
-        cabRepository.save(cab);       // Update cab status
+        driverRepository.save(driver); // Update driver stat
         Ride updatedRide = rideRepository.save(ride);
 
         return mapToRideResponseDTO(updatedRide);
@@ -126,20 +118,14 @@ public class RideServiceImpl implements RideService {
                     ride.getDriver().setStatus(DriverStatus.AVAILABLE);
                     driverRepository.save(ride.getDriver());
                 }
-                if (ride.getCab() != null) {
-                    ride.getCab().setStatus(CabStatus.AVAILABLE);
-                    cabRepository.save(ride.getCab());
-                }
+               
             } else if (newStatus == RideStatus.CANCELLED) {
                  // Handle cancellation logic (e.g., free up driver/cab if assigned)
                  if (ride.getDriver() != null) {
                     ride.getDriver().setStatus(DriverStatus.AVAILABLE);
                     driverRepository.save(ride.getDriver());
                 }
-                if (ride.getCab() != null) {
-                    ride.getCab().setStatus(CabStatus.AVAILABLE);
-                    cabRepository.save(ride.getCab());
-                }
+               
             }
 
             Ride updatedRide = rideRepository.save(ride);
@@ -192,7 +178,6 @@ public class RideServiceImpl implements RideService {
             ride.getId(),
             ride.getUser() != null ? ride.getUser().getId() : null,
             ride.getDriver() != null ? ride.getDriver().getId() : null,
-            ride.getCab() != null ? ride.getCab().getId() : null,
             ride.getPickupLat(),
             ride.getPickupLon(),
             ride.getDestinationLat(),

@@ -25,9 +25,7 @@ public class Ride {
     @JoinColumn(name = "driver_id") // Can be null if not yet assigned
     private Driver driver;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "cab_id") // Can be null if not yet assigned
-    private Cab cab;
+    
 
     @Column(nullable = false)
     private Double pickupLat;

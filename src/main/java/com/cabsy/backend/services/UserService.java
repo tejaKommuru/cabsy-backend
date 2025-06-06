@@ -12,5 +12,10 @@ public interface UserService {
     Optional<User> findUserByEmail(String email);
     Optional<UserResponseDTO> getUserById(Long id);
     List<UserResponseDTO> getAllUsers();
+    // UserResponseDTO updateName(String name, Long id);
+    void updateName(String name, Long id);
+    void updateEmail(String newEmail, Long userId);
+    void updatePhoneNumber(String newPhoneNumber,Long userId);
+    void updatePassword(String oldPassword, String newPassword, Long userId);
     // Add methods for updating profile, etc.
 }
