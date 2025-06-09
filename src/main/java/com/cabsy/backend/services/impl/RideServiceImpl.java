@@ -7,7 +7,10 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
+<<<<<<< HEAD
 import org.springframework.transaction.annotation.Transactional;
+=======
+>>>>>>> 3646082fc298e5c2e0f49f3a5f2ac76a389de774
 
 import com.cabsy.backend.dtos.RideRequestDTO;
 import com.cabsy.backend.dtos.RideResponseDTO;
@@ -23,6 +26,11 @@ import com.cabsy.backend.repositories.DriverRepository;
 import com.cabsy.backend.repositories.RideRepository;
 import com.cabsy.backend.repositories.UserRepository;
 import com.cabsy.backend.services.RideService;
+<<<<<<< HEAD
+=======
+
+import jakarta.transaction.Transactional;
+>>>>>>> 3646082fc298e5c2e0f49f3a5f2ac76a389de774
 
 @Service
 public class RideServiceImpl implements RideService {
@@ -152,6 +160,7 @@ public class RideServiceImpl implements RideService {
                 .map(this::mapToRideResponseDTO)
                 .collect(Collectors.toList());
     }
+<<<<<<< HEAD
     
     @Override
     @Transactional
@@ -161,6 +170,9 @@ public class RideServiceImpl implements RideService {
      .collect(Collectors.toList());
      }
     
+=======
+
+>>>>>>> 3646082fc298e5c2e0f49f3a5f2ac76a389de774
     // --- Helper methods ---
 
     private Double calculateEstimatedFare(Double pickupLat, Double pickupLon, Double destLat, Double destLon) {
@@ -211,5 +223,20 @@ public class RideServiceImpl implements RideService {
     
         return dto;
     }
+<<<<<<< HEAD
     
+=======
+
+    @Override
+    public List<Ride> getPreviousRidesByDriver(Long driverId) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'getPreviousRidesByDriver'");
+    }
+
+    @Override
+    public List<Ride> getAvailableRides() {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'getAvailableRides'");
+    }
+>>>>>>> 3646082fc298e5c2e0f49f3a5f2ac76a389de774
 }

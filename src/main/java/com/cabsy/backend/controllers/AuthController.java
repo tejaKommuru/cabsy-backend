@@ -1,29 +1,16 @@
 // src/main/java/com/cabsy/backend/controllers/AuthController.java
 package com.cabsy.backend.controllers;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
 import java.util.Map;
 
 import com.cabsy.backend.dtos.ApiResponse;
-import com.cabsy.backend.dtos.ChangePasswordRequest;
 import com.cabsy.backend.dtos.DriverRegistrationDTO;
 import com.cabsy.backend.dtos.DriverResponseDTO;
 import com.cabsy.backend.dtos.LoginDTO;
 import com.cabsy.backend.dtos.UserRegistrationDTO;
 import com.cabsy.backend.dtos.UserResponseDTO;
 import com.cabsy.backend.models.User;
-import com.cabsy.backend.models.Driver;
 import com.cabsy.backend.services.DriverService;
-import com.cabsy.backend.services.UserService; // For DTO validation
-
-import jakarta.persistence.EntityNotFoundException;
-import jakarta.validation.Valid; // Needed for login check
 import com.cabsy.backend.services.UserService;
 
 import java.util.Optional;
@@ -139,19 +126,6 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ApiResponse.error("User " + field + " update failed", "An internal server error occurred."));
         }
     }
-    
-    @PostMapping("driver/{id}")
-     public ResponseEntity<?> updateDriverProfile(@PathVariable Long id, @RequestBody DriverRegistrationDTO updateDTO) {
-     try {
-     Driver updatedDriver = driverService.updateDriverProfile(id, updateDTO);
-     return ResponseEntity.ok(updatedDriver);
-     } catch (EntityNotFoundException e) {
-     return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Driver not found");
-     } catch (Exception e) {
-     return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error updating driver profile");
-     }
-     }
-
 
     @PostMapping("/user/register")
     public ResponseEntity<ApiResponse<UserResponseDTO>> registerUser(@Valid @RequestBody UserRegistrationDTO registrationDTO) {
@@ -198,12 +172,22 @@ public class AuthController {
 
     @PostMapping("/driver/login")
     public ResponseEntity<ApiResponse<DriverResponseDTO>> loginDriver(@Valid @RequestBody LoginDTO loginDTO) {
-        // This is a basic login check. For real-world, you'd generate a JWT token here.
         return (ResponseEntity<ApiResponse<DriverResponseDTO>>) driverService.findDriverByEmail(loginDTO.getEmail())
-            .map(driverDTO -> {
-                if (passwordEncoder.matches(loginDTO.getPassword(), driverDTO.getPassword())) {
-                    // TODO: Implement JWT token generation and return it
-                    return ResponseEntity.ok(ApiResponse.success("Driver logged in successfull",driverDTO));
+            .map(driver -> {
+                if (passwordEncoder.matches(loginDTO.getPassword(), driver.getPassword())) {
+                    // Create DriverResponseDTO from the authenticated Driver entity
+                    DriverResponseDTO driverResponse = new DriverResponseDTO(
+                        driver.getId(),
+                        driver.getName(),
+                        driver.getEmail(),
+                        driver.getPhoneNumber(),
+                        driver.getLicenseNumber(),
+                        driver.getStatus(),
+                        driver.getRating()
+                        // If you had a JWT token, you'd add it to DriverResponseDTO and return it here
+                        // driver.getJwtToken()
+                    );
+                    return ResponseEntity.ok(ApiResponse.success("Driver logged in successfully", driverResponse));
                 } else {
                     return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ApiResponse.error("Login failed", "Invalid credentials"));
                 }
