@@ -17,7 +17,18 @@ import com.cabsy.backend.models.DriverStatus;
 import com.cabsy.backend.repositories.DriverRepository;
 import com.cabsy.backend.services.DriverService;
 
+import jakarta.persistence.EntityNotFoundException;
+
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+
 import jakarta.transaction.Transactional;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+import jakarta.persistence.EntityNotFoundException;
 
 @Service
 public class DriverServiceImpl implements DriverService {
@@ -95,18 +106,18 @@ public class DriverServiceImpl implements DriverService {
                     updatedDriver.getLicenseNumber(), updatedDriver.getStatus(), updatedDriver.getRating());
         }).orElseThrow(() -> new RuntimeException("Driver not found with id: " + driverId));
     }
+
     
-    public String changePassword(ChangePasswordRequest requestDTO) {
-         Driver driver = driverRepository.findByEmail(requestDTO.getEmail())
-             .orElseThrow(() -> new UsernameNotFoundException("Driver not found"));
-        
-         if (!passwordEncoder.matches(requestDTO.getOldPassword(), driver.getPassword())) {
-         throw new IllegalArgumentException("Old password is incorrect");
-         }
-        
-         driver.setPassword(passwordEncoder.encode(requestDTO.getNewPassword()));
-         driverRepository.save(driver);
-        
-         return "Password changed successfully";
-    }
+public Driver updateDriverProfile(Long id, DriverRegistrationDTO dto) {
+     Driver driver = driverRepository.findById(id)
+     .orElseThrow(() -> new EntityNotFoundException("Driver not found"));
+    
+     driver.setName(dto.getName());
+     driver.setEmail(dto.getEmail());
+     driver.setPhoneNumber(dto.getPhoneNumber());
+     driver.setLicenseNumber(dto.getLicenseNumber());
+    
+     return driverRepository.save(driver);
+     }
+    
 }
