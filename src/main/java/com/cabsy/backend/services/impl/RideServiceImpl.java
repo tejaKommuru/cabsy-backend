@@ -1,6 +1,13 @@
 // src/main/java/com/cabsy/backend/services/impl/RideServiceImpl.java
 package com.cabsy.backend.services.impl;
 
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+import org.springframework.stereotype.Service;
+
 import com.cabsy.backend.dtos.RideRequestDTO;
 import com.cabsy.backend.dtos.RideResponseDTO;
 import com.cabsy.backend.models.Cab;
@@ -15,12 +22,8 @@ import com.cabsy.backend.repositories.DriverRepository;
 import com.cabsy.backend.repositories.RideRepository;
 import com.cabsy.backend.repositories.UserRepository;
 import com.cabsy.backend.services.RideService;
-import org.springframework.stereotype.Service;
+
 import jakarta.transaction.Transactional;
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 public class RideServiceImpl implements RideService {
@@ -166,24 +169,6 @@ public class RideServiceImpl implements RideService {
                 .collect(Collectors.toList());
     }
 
-    
-    public List<Ride> getPreviousRidesByDriver(Long driverId) {
-     try {
-     return rideRepository.findByDriverIdAndStatus(driverId, RideStatus.COMPLETED);
-     } catch (Exception e) {
-     throw new RuntimeException("Error retrieving completed rides for driverId: " + driverId, e);
-     }
-    }
-    
-    public List<Ride> getAvailableRides() {
-     try {
-     return rideRepository.findByStatus(RideStatus.AVAILABLE);
-     } catch (Exception e) {
-     throw new RuntimeException("Error retrieving available rides", e);
-     }
-     }
-    
-
     // --- Helper methods ---
 
     private Double calculateEstimatedFare(Double pickupLat, Double pickupLon, Double destLat, Double destLon) {
@@ -224,5 +209,17 @@ public class RideServiceImpl implements RideService {
             ride.getStartTime(),
             ride.getEndTime()
         );
+    }
+
+    @Override
+    public List<Ride> getPreviousRidesByDriver(Long driverId) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'getPreviousRidesByDriver'");
+    }
+
+    @Override
+    public List<Ride> getAvailableRides() {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'getAvailableRides'");
     }
 }
