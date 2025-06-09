@@ -5,8 +5,8 @@ import java.time.LocalDateTime;
 
 import com.cabsy.backend.models.RideStatus;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 
 @Data
@@ -31,9 +31,9 @@ public class RideResponseDTO {
     private LocalDateTime endTime;
     // You might include PaymentSummaryDTO and RatingSummaryDTO here later
     
-// Add user info
- private String userName;
- private String userEmail;
- private String userPhone;
+    // Add user info
+    private String userName;
+    private String userEmail;
+    private String userPhone;
 
 }
