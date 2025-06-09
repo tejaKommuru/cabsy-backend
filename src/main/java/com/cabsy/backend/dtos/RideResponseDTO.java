@@ -1,11 +1,13 @@
 // src/main/java/com/cabsy/backend/dtos/RideResponseDTO.java
 package com.cabsy.backend.dtos;
 
+import java.time.LocalDateTime;
+
 import com.cabsy.backend.models.RideStatus;
+
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
-import java.time.LocalDateTime;
 
 @Data
 @NoArgsConstructor
@@ -28,4 +30,10 @@ public class RideResponseDTO {
     private LocalDateTime startTime;
     private LocalDateTime endTime;
     // You might include PaymentSummaryDTO and RatingSummaryDTO here later
+    
+// Add user info
+ private String userName;
+ private String userEmail;
+ private String userPhone;
+
 }

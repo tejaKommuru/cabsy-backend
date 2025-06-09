@@ -48,10 +48,9 @@ public class RideController {
     @PutMapping("/{rideId}/assign")
     public ResponseEntity<ApiResponse<RideResponseDTO>> assignDriverToRide(
             @PathVariable Long rideId,
-            @RequestParam Long driverId,
-            @RequestParam Long cabId) {
+            @RequestParam Long driverId) {
         try {
-            RideResponseDTO assignedRide = rideService.assignDriverToRide(rideId, driverId, cabId);
+            RideResponseDTO assignedRide = rideService.assignDriverToRide(rideId, driverId);
             return ResponseEntity.ok(ApiResponse.success("Driver and cab assigned to ride", assignedRide));
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponse.error("Failed to assign driver/cab", e.getMessage()));
@@ -84,24 +83,14 @@ public class RideController {
     }
 
     @GetMapping("/driver/{driverId}")
-     public ResponseEntity<?> getPreviousRidesByDriver(@PathVariable Long driverId) {
-     try {
-     List<Ride> rides = rideService.getPreviousRidesByDriver(driverId);
+    public ResponseEntity<ApiResponse<List<RideResponseDTO>>> getPreviousRidesByDriverId(@PathVariable Long driverId) {
+    List<RideResponseDTO> rides = rideService.getPreviousRidesByDriverId(driverId);
      return ResponseEntity.ok(ApiResponse.success("Previous rides for driver fetched successfully", rides));
-     } catch (Exception e) {
-     return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-     .body("Failed to fetch previous rides: " + e.getMessage());
-     }
     }
 
     @GetMapping()
-    public ResponseEntity<?> getAvailableRides() {
-        try {
-             List<Ride> rides = rideService.getAvailableRides();
-             return ResponseEntity.ok(ApiResponse.success("Available rides for driver fetched successfully", rides));
-            } catch (Exception e) {
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body("Failed to fetch available rides: " + e.getMessage());
-            }
+    public ResponseEntity<ApiResponse<List<RideResponseDTO>>> getAvailableRides() {
+            List<RideResponseDTO> rides = rideService.getAvailableRides();
+             return ResponseEntity.ok(ApiResponse.success("Available rides for fetched successfully", rides));    
     }
 }

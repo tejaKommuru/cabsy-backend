@@ -1,6 +1,14 @@
 // src/main/java/com/cabsy/backend/services/impl/RideServiceImpl.java
 package com.cabsy.backend.services.impl;
 
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.cabsy.backend.dtos.RideRequestDTO;
 import com.cabsy.backend.dtos.RideResponseDTO;
 import com.cabsy.backend.models.Cab;
@@ -15,12 +23,6 @@ import com.cabsy.backend.repositories.DriverRepository;
 import com.cabsy.backend.repositories.RideRepository;
 import com.cabsy.backend.repositories.UserRepository;
 import com.cabsy.backend.services.RideService;
-import org.springframework.stereotype.Service;
-import jakarta.transaction.Transactional;
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 public class RideServiceImpl implements RideService {
@@ -68,37 +70,21 @@ public class RideServiceImpl implements RideService {
 
     @Override
     @Transactional
-    public RideResponseDTO assignDriverToRide(Long rideId, Long driverId, Long cabId) {
+    public RideResponseDTO assignDriverToRide(Long rideId, Long driverId) {
         Ride ride = rideRepository.findById(rideId)
                 .orElseThrow(() -> new RuntimeException("Ride not found with id: " + rideId));
         Driver driver = driverRepository.findById(driverId)
                 .orElseThrow(() -> new RuntimeException("Driver not found with id: " + driverId));
-        Cab cab = cabRepository.findById(cabId)
-                .orElseThrow(() -> new RuntimeException("Cab not found with id: " + cabId));
 
         // Basic checks:
-        if (ride.getDriver() != null || ride.getCab() != null) {
+        if (ride.getDriver() != null) {
             throw new RuntimeException("Ride already has a driver/cab assigned.");
         }
-        if (driver.getStatus() != DriverStatus.AVAILABLE) {
-            throw new RuntimeException("Driver is not available for a ride.");
-        }
-        if (cab.getStatus() != CabStatus.AVAILABLE) {
-            throw new RuntimeException("Cab is not available.");
-        }
-        if (!driver.getCab().getId().equals(cabId)) {
-             throw new RuntimeException("Assigned cab does not belong to the assigned driver.");
-        }
-
-
+    
         ride.setDriver(driver);
-        ride.setCab(cab);
         ride.setStatus(RideStatus.ACCEPTED);
-        driver.setStatus(DriverStatus.OCCUPIED); // Driver is now occupied
-        cab.setStatus(CabStatus.ON_TRIP); // Cab is now on trip
 
         driverRepository.save(driver); // Update driver status
-        cabRepository.save(cab);       // Update cab status
         Ride updatedRide = rideRepository.save(ride);
 
         return mapToRideResponseDTO(updatedRide);
@@ -160,30 +146,21 @@ public class RideServiceImpl implements RideService {
     }
 
     @Override
-    public List<RideResponseDTO> getRidesByDriverId(Long driverId) {
-        return rideRepository.findByDriverId(driverId).stream()
+    @Transactional
+    public List<RideResponseDTO> getPreviousRidesByDriverId(Long driverId) {
+        return rideRepository.findByDriverIdAndStatus(driverId, RideStatus.COMPLETED).stream()
                 .map(this::mapToRideResponseDTO)
                 .collect(Collectors.toList());
     }
-
     
-    public List<Ride> getPreviousRidesByDriver(Long driverId) {
-     try {
-     return rideRepository.findByDriverIdAndStatus(driverId, RideStatus.COMPLETED);
-     } catch (Exception e) {
-     throw new RuntimeException("Error retrieving completed rides for driverId: " + driverId, e);
-     }
-    }
-    
-    public List<Ride> getAvailableRides() {
-     try {
-     return rideRepository.findByStatus(RideStatus.AVAILABLE);
-     } catch (Exception e) {
-     throw new RuntimeException("Error retrieving available rides", e);
-     }
+    @Override
+    @Transactional
+    public List<RideResponseDTO> getAvailableRides() {
+     return rideRepository.findByStatus(RideStatus.REQUESTED).stream()
+     .map(this::mapToRideResponseDTO)
+     .collect(Collectors.toList());
      }
     
-
     // --- Helper methods ---
 
     private Double calculateEstimatedFare(Double pickupLat, Double pickupLon, Double destLat, Double destLon) {
@@ -206,23 +183,33 @@ public class RideServiceImpl implements RideService {
     }
 
     private RideResponseDTO mapToRideResponseDTO(Ride ride) {
-        return new RideResponseDTO(
-            ride.getId(),
-            ride.getUser() != null ? ride.getUser().getId() : null,
-            ride.getDriver() != null ? ride.getDriver().getId() : null,
-            ride.getCab() != null ? ride.getCab().getId() : null,
-            ride.getPickupLat(),
-            ride.getPickupLon(),
-            ride.getDestinationLat(),
-            ride.getDestinationLon(),
-            ride.getPickupAddress(),
-            ride.getDestinationAddress(),
-            ride.getStatus(),
-            ride.getEstimatedFare(),
-            ride.getActualFare(),
-            ride.getRequestTime(),
-            ride.getStartTime(),
-            ride.getEndTime()
-        );
+        RideResponseDTO dto = new RideResponseDTO();
+        dto.setId(ride.getId());
+        dto.setUserId(ride.getUser().getId());
+        dto.setDriverId(ride.getDriver() != null ? ride.getDriver().getId() : null);
+        dto.setCabId(ride.getCab() != null ? ride.getCab().getId() : null);
+        dto.setPickupLat(ride.getPickupLat());
+        dto.setPickupLon(ride.getPickupLon());
+        dto.setDestinationLat(ride.getDestinationLat());
+        dto.setDestinationLon(ride.getDestinationLon());
+        dto.setPickupAddress(ride.getPickupAddress());
+        dto.setDestinationAddress(ride.getDestinationAddress());
+        dto.setStatus(ride.getStatus());
+        dto.setEstimatedFare(ride.getEstimatedFare());
+        dto.setActualFare(ride.getActualFare());
+        dto.setRequestTime(ride.getRequestTime());
+        dto.setStartTime(ride.getStartTime());
+        dto.setEndTime(ride.getEndTime());
+    
+        // ✅ Add user details
+        User user = ride.getUser();
+        if (user != null) {
+            dto.setUserName(user.getName());
+            dto.setUserEmail(user.getEmail());
+            dto.setUserPhone(user.getPhoneNumber());
+        }
+    
+        return dto;
     }
+    
 }
