@@ -7,12 +7,17 @@ import com.cabsy.backend.models.Driver;
 import com.cabsy.backend.models.DriverStatus;
 import com.cabsy.backend.repositories.DriverRepository;
 import com.cabsy.backend.services.DriverService;
+
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
 import jakarta.transaction.Transactional;
+
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+
+import jakarta.persistence.EntityNotFoundException;
 
 @Service
 public class DriverServiceImpl implements DriverService {
@@ -89,4 +94,18 @@ public class DriverServiceImpl implements DriverService {
                 updatedDriver.getLicenseNumber(), updatedDriver.getStatus(), updatedDriver.getRating());
         }).orElseThrow(() -> new RuntimeException("Driver not found with id: " + driverId));
     }
+
+    
+public Driver updateDriverProfile(Long id, DriverRegistrationDTO dto) {
+     Driver driver = driverRepository.findById(id)
+     .orElseThrow(() -> new EntityNotFoundException("Driver not found"));
+    
+     driver.setName(dto.getName());
+     driver.setEmail(dto.getEmail());
+     driver.setPhoneNumber(dto.getPhoneNumber());
+     driver.setLicenseNumber(dto.getLicenseNumber());
+    
+     return driverRepository.save(driver);
+     }
+    
 }

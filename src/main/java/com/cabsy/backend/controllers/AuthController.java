@@ -17,9 +17,11 @@ import com.cabsy.backend.dtos.LoginDTO;
 import com.cabsy.backend.dtos.UserRegistrationDTO;
 import com.cabsy.backend.dtos.UserResponseDTO;
 import com.cabsy.backend.models.User;
+import com.cabsy.backend.models.Driver;
 import com.cabsy.backend.services.DriverService;
 import com.cabsy.backend.services.UserService; // For DTO validation
 
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid; // Needed for login check
 import com.cabsy.backend.services.UserService;
 
@@ -136,6 +138,19 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ApiResponse.error("User " + field + " update failed", "An internal server error occurred."));
         }
     }
+    
+    @PostMapping("driver/{id}")
+     public ResponseEntity<?> updateDriverProfile(@PathVariable Long id, @RequestBody DriverRegistrationDTO updateDTO) {
+     try {
+     Driver updatedDriver = driverService.updateDriverProfile(id, updateDTO);
+     return ResponseEntity.ok(updatedDriver);
+     } catch (EntityNotFoundException e) {
+     return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Driver not found");
+     } catch (Exception e) {
+     return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error updating driver profile");
+     }
+     }
+
 
     @PostMapping("/user/register")
     public ResponseEntity<ApiResponse<UserResponseDTO>> registerUser(@Valid @RequestBody UserRegistrationDTO registrationDTO) {

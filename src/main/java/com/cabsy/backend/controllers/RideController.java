@@ -1,11 +1,8 @@
 // src/main/java/com/cabsy/backend/controllers/RideController.java
 package com.cabsy.backend.controllers;
 
-import com.cabsy.backend.dtos.ApiResponse;
-import com.cabsy.backend.dtos.RideRequestDTO;
-import com.cabsy.backend.dtos.RideResponseDTO;
-import com.cabsy.backend.models.RideStatus;
-import com.cabsy.backend.services.RideService;
+import java.util.List;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,8 +13,15 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import com.cabsy.backend.dtos.ApiResponse;
+import com.cabsy.backend.dtos.RideRequestDTO;
+import com.cabsy.backend.dtos.RideResponseDTO;
+import com.cabsy.backend.models.Ride;
+import com.cabsy.backend.models.RideStatus;
+import com.cabsy.backend.services.RideService;
+
 import jakarta.validation.Valid;
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/rides")
@@ -80,8 +84,24 @@ public class RideController {
     }
 
     @GetMapping("/driver/{driverId}")
-    public ResponseEntity<ApiResponse<List<RideResponseDTO>>> getRidesByDriverId(@PathVariable Long driverId) {
-        List<RideResponseDTO> rides = rideService.getRidesByDriverId(driverId);
-        return ResponseEntity.ok(ApiResponse.success("Rides for driver fetched successfully", rides));
+     public ResponseEntity<?> getPreviousRidesByDriver(@PathVariable Long driverId) {
+     try {
+     List<Ride> rides = rideService.getPreviousRidesByDriver(driverId);
+     return ResponseEntity.ok(ApiResponse.success("Previous rides for driver fetched successfully", rides));
+     } catch (Exception e) {
+     return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+     .body("Failed to fetch previous rides: " + e.getMessage());
+     }
+    }
+
+    @GetMapping()
+    public ResponseEntity<?> getAvailableRides() {
+        try {
+             List<Ride> rides = rideService.getAvailableRides();
+             return ResponseEntity.ok(ApiResponse.success("Available rides for driver fetched successfully", rides));
+            } catch (Exception e) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body("Failed to fetch available rides: " + e.getMessage());
+            }
     }
 }

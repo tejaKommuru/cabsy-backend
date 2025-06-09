@@ -166,6 +166,24 @@ public class RideServiceImpl implements RideService {
                 .collect(Collectors.toList());
     }
 
+    
+    public List<Ride> getPreviousRidesByDriver(Long driverId) {
+     try {
+     return rideRepository.findByDriverIdAndStatus(driverId, RideStatus.COMPLETED);
+     } catch (Exception e) {
+     throw new RuntimeException("Error retrieving completed rides for driverId: " + driverId, e);
+     }
+    }
+    
+    public List<Ride> getAvailableRides() {
+     try {
+     return rideRepository.findByStatus(RideStatus.AVAILABLE);
+     } catch (Exception e) {
+     throw new RuntimeException("Error retrieving available rides", e);
+     }
+     }
+    
+
     // --- Helper methods ---
 
     private Double calculateEstimatedFare(Double pickupLat, Double pickupLon, Double destLat, Double destLon) {

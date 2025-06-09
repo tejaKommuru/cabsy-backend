@@ -9,5 +9,6 @@ public enum RideStatus {
     IN_PROGRESS,     // Ride has started (user picked up)
     COMPLETED,       // Ride finished, user dropped off
     CANCELLED,       // Ride was cancelled
-    NO_DRIVER_FOUND  // No driver could be assigned
+    NO_DRIVER_FOUND,  // No driver could be assigned
+    AVAILABLE
 }
