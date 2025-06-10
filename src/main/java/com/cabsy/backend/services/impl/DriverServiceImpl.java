@@ -5,11 +5,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import com.cabsy.backend.dtos.ChangePasswordRequest;
 import com.cabsy.backend.dtos.DriverRegistrationDTO;
 import com.cabsy.backend.dtos.DriverResponseDTO;
 import com.cabsy.backend.models.Driver;
@@ -19,16 +17,7 @@ import com.cabsy.backend.services.DriverService;
 
 import jakarta.persistence.EntityNotFoundException;
 
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Service;
-
 import jakarta.transaction.Transactional;
-
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
-
-import jakarta.persistence.EntityNotFoundException;
 
 @Service
 public class DriverServiceImpl implements DriverService {
