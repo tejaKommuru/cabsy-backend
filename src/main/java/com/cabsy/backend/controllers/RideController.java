@@ -66,6 +66,7 @@ public class RideController {
         }
     }
 
+    
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<RideResponseDTO>> getRideById(@PathVariable Long id) {
         return rideService.getRideById(id)
