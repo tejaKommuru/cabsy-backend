@@ -1,11 +1,8 @@
 // src/main/java/com/cabsy/backend/controllers/RideController.java
 package com.cabsy.backend.controllers;
 
-import com.cabsy.backend.dtos.ApiResponse;
-import com.cabsy.backend.dtos.RideRequestDTO;
-import com.cabsy.backend.dtos.RideResponseDTO;
-import com.cabsy.backend.models.RideStatus;
-import com.cabsy.backend.services.RideService;
+import java.util.List;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,8 +13,15 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import com.cabsy.backend.dtos.ApiResponse;
+import com.cabsy.backend.dtos.RideRequestDTO;
+import com.cabsy.backend.dtos.RideResponseDTO;
+import com.cabsy.backend.models.Ride;
+import com.cabsy.backend.models.RideStatus;
+import com.cabsy.backend.services.RideService;
+
 import jakarta.validation.Valid;
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/rides")
@@ -44,10 +48,9 @@ public class RideController {
     @PutMapping("/{rideId}/assign")
     public ResponseEntity<ApiResponse<RideResponseDTO>> assignDriverToRide(
             @PathVariable Long rideId,
-            @RequestParam Long driverId,
-            @RequestParam Long cabId) {
+            @RequestParam Long driverId) {
         try {
-            RideResponseDTO assignedRide = rideService.assignDriverToRide(rideId, driverId, cabId);
+            RideResponseDTO assignedRide = rideService.assignDriverToRide(rideId, driverId);
             return ResponseEntity.ok(ApiResponse.success("Driver and cab assigned to ride", assignedRide));
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponse.error("Failed to assign driver/cab", e.getMessage()));
@@ -81,8 +84,14 @@ public class RideController {
     }
 
     @GetMapping("/driver/{driverId}")
-    public ResponseEntity<ApiResponse<List<RideResponseDTO>>> getRidesByDriverId(@PathVariable Long driverId) {
-        List<RideResponseDTO> rides = rideService.getRidesByDriverId(driverId);
-        return ResponseEntity.ok(ApiResponse.success("Rides for driver fetched successfully", rides));
+    public ResponseEntity<ApiResponse<List<RideResponseDTO>>> getPreviousRidesByDriverId(@PathVariable Long driverId) {
+    List<RideResponseDTO> rides = rideService.getPreviousRidesByDriverId(driverId);
+     return ResponseEntity.ok(ApiResponse.success("Previous rides for driver fetched successfully", rides));
+    }
+
+    @GetMapping()
+    public ResponseEntity<ApiResponse<List<RideResponseDTO>>> getAvailableRides() {
+            List<RideResponseDTO> rides = rideService.getAvailableRides();
+             return ResponseEntity.ok(ApiResponse.success("Available rides for fetched successfully", rides));    
     }
 }

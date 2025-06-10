@@ -15,5 +15,4 @@ public interface DriverService {
     List<DriverResponseDTO> getAllDrivers();
     // Removed: List<DriverResponseDTO> getAvailableDriversInArea(Double lat, Double lon, Double radiusKm);
     DriverResponseDTO updateDriverStatus(Long driverId, DriverStatus newStatus);
-    // Removed: DriverResponseDTO updateDriverLocation(Long driverId, Double lat, Double lon);
 }
