@@ -60,6 +60,7 @@ public class RideServiceImpl implements RideService {
         ride.setRequestTime(LocalDateTime.now());
 
         Ride savedRide = rideRepository.save(ride);
+        
 
         // TODO: Implement logic to find and assign a driver here or in a separate "matching" service
         // For now, we'll just return the requested ride.
@@ -87,7 +88,7 @@ public class RideServiceImpl implements RideService {
         driverRepository.save(driver); // Update driver status
         Ride updatedRide = rideRepository.save(ride);
 
-        return mapToRideResponseDTO(updatedRide);
+        return mapToRideAssignResponseDTO(updatedRide);
     }
 
     @Override
@@ -134,6 +135,7 @@ public class RideServiceImpl implements RideService {
     }
 
     @Override
+    @Transactional
     public Optional<RideResponseDTO> getRideById(Long rideId) {
         return rideRepository.findById(rideId).map(this::mapToRideResponseDTO);
     }
@@ -211,5 +213,36 @@ public class RideServiceImpl implements RideService {
     
         return dto;
     }
+
+    private RideResponseDTO mapToRideAssignResponseDTO(Ride ride) {
+        RideResponseDTO dto = new RideResponseDTO();
+        dto.setId(ride.getId());
+        dto.setUserId(ride.getUser().getId());
+        dto.setDriverId(ride.getDriver() != null ? ride.getDriver().getId() : null);
+        dto.setCabId(ride.getCab() != null ? ride.getCab().getId() : null);
+        dto.setPickupLat(ride.getPickupLat());
+        dto.setPickupLon(ride.getPickupLon());
+        dto.setDestinationLat(ride.getDestinationLat());
+        dto.setDestinationLon(ride.getDestinationLon());
+        dto.setPickupAddress(ride.getPickupAddress());
+        dto.setDestinationAddress(ride.getDestinationAddress());
+        dto.setStatus(ride.getStatus());
+        dto.setEstimatedFare(ride.getEstimatedFare());
+        dto.setActualFare(ride.getActualFare());
+        dto.setRequestTime(ride.getRequestTime());
+        dto.setStartTime(ride.getStartTime());
+        dto.setEndTime(ride.getEndTime());
+    
+        // ✅ Add user details
+        User user = ride.getUser();
+        if (user != null) {
+            dto.setUserName(user.getName());
+            dto.setUserEmail(user.getEmail());
+            dto.setUserPhone(user.getPhoneNumber());
+        }
+    
+        return dto;
+    }
+    
     
 }
