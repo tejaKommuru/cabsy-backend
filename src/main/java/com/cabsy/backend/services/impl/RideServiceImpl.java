@@ -30,14 +30,14 @@ public class RideServiceImpl implements RideService {
     private final RideRepository rideRepository;
     private final UserRepository userRepository;
     private final DriverRepository driverRepository;
-    private final CabRepository cabRepository;
+    // private final CabRepository cabRepository;
 
     public RideServiceImpl(RideRepository rideRepository, UserRepository userRepository,
                            DriverRepository driverRepository, CabRepository cabRepository) {
         this.rideRepository = rideRepository;
         this.userRepository = userRepository;
         this.driverRepository = driverRepository;
-        this.cabRepository = cabRepository;
+        // this.cabRepository = cabRepository;
     }
 
     @Override
@@ -112,10 +112,7 @@ public class RideServiceImpl implements RideService {
                     ride.getDriver().setStatus(DriverStatus.AVAILABLE);
                     driverRepository.save(ride.getDriver());
                 }
-                if (ride.getCab() != null) {
-                    ride.getCab().setStatus(CabStatus.AVAILABLE);
-                    cabRepository.save(ride.getCab());
-                }
+                
             } else if (newStatus == RideStatus.CANCELLED) {
                  // Handle cancellation logic (e.g., free up driver/cab if assigned)
                  if (ride.getDriver() != null) {
@@ -124,7 +121,7 @@ public class RideServiceImpl implements RideService {
                 }
                 if (ride.getCab() != null) {
                     ride.getCab().setStatus(CabStatus.AVAILABLE);
-                    cabRepository.save(ride.getCab());
+                    
                 }
             }
 
