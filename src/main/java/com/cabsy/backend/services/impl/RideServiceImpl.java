@@ -12,13 +12,11 @@ import org.springframework.transaction.annotation.Transactional;
 import com.cabsy.backend.dtos.RideRequestDTO;
 import com.cabsy.backend.dtos.RideResponseDTO;
 
-import com.cabsy.backend.models.CabStatus;
 import com.cabsy.backend.models.Driver;
 import com.cabsy.backend.models.DriverStatus;
 import com.cabsy.backend.models.Ride;
 import com.cabsy.backend.models.RideStatus;
 import com.cabsy.backend.models.User;
-import com.cabsy.backend.repositories.CabRepository;
 import com.cabsy.backend.repositories.DriverRepository;
 import com.cabsy.backend.repositories.RideRepository;
 import com.cabsy.backend.repositories.UserRepository;
@@ -30,14 +28,13 @@ public class RideServiceImpl implements RideService {
     private final RideRepository rideRepository;
     private final UserRepository userRepository;
     private final DriverRepository driverRepository;
-    private final CabRepository cabRepository;
+    
 
     public RideServiceImpl(RideRepository rideRepository, UserRepository userRepository,
-                           DriverRepository driverRepository, CabRepository cabRepository) {
+                           DriverRepository driverRepository) {
         this.rideRepository = rideRepository;
         this.userRepository = userRepository;
         this.driverRepository = driverRepository;
-        this.cabRepository = cabRepository;
     }
 
     @Override
@@ -113,19 +110,12 @@ public class RideServiceImpl implements RideService {
                     ride.getDriver().setStatus(DriverStatus.AVAILABLE);
                     driverRepository.save(ride.getDriver());
                 }
-                if (ride.getCab() != null) {
-                    ride.getCab().setStatus(CabStatus.AVAILABLE);
-                    cabRepository.save(ride.getCab());
-                }
+        
             } else if (newStatus == RideStatus.CANCELLED) {
                  // Handle cancellation logic (e.g., free up driver/cab if assigned)
                  if (ride.getDriver() != null) {
                     ride.getDriver().setStatus(DriverStatus.AVAILABLE);
                     driverRepository.save(ride.getDriver());
-                }
-                if (ride.getCab() != null) {
-                    ride.getCab().setStatus(CabStatus.AVAILABLE);
-                    cabRepository.save(ride.getCab());
                 }
             }
 
@@ -189,7 +179,6 @@ public class RideServiceImpl implements RideService {
         dto.setId(ride.getId());
         dto.setUserId(ride.getUser().getId());
         dto.setDriverId(ride.getDriver() != null ? ride.getDriver().getId() : null);
-        dto.setCabId(ride.getCab() != null ? ride.getCab().getId() : null);
         dto.setPickupLat(ride.getPickupLat());
         dto.setPickupLon(ride.getPickupLon());
         dto.setDestinationLat(ride.getDestinationLat());
@@ -202,14 +191,6 @@ public class RideServiceImpl implements RideService {
         dto.setRequestTime(ride.getRequestTime());
         dto.setStartTime(ride.getStartTime());
         dto.setEndTime(ride.getEndTime());
-    
-        // ✅ Add user details
-        User user = ride.getUser();
-        if (user != null) {
-            dto.setUserName(user.getName());
-            dto.setUserEmail(user.getEmail());
-            dto.setUserPhone(user.getPhoneNumber());
-        }
     
         return dto;
     }
