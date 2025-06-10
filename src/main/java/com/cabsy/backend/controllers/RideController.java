@@ -17,7 +17,6 @@ import org.springframework.web.bind.annotation.RestController;
 import com.cabsy.backend.dtos.ApiResponse;
 import com.cabsy.backend.dtos.RideRequestDTO;
 import com.cabsy.backend.dtos.RideResponseDTO;
-import com.cabsy.backend.models.Ride;
 import com.cabsy.backend.models.RideStatus;
 import com.cabsy.backend.services.RideService;
 
@@ -69,6 +68,7 @@ public class RideController {
         }
     }
 
+    
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<RideResponseDTO>> getRideById(@PathVariable Long id) {
         return rideService.getRideById(id)
