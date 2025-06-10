@@ -199,6 +199,15 @@ public class RideServiceImpl implements RideService {
         dto.setRequestTime(ride.getRequestTime());
         dto.setStartTime(ride.getStartTime());
         dto.setEndTime(ride.getEndTime());
-    
+
+         // ✅ Add user details
+         User user = ride.getUser();
+         if (user != null) {
+             dto.setUserName(user.getName());
+             dto.setUserEmail(user.getEmail());
+             dto.setUserPhone(user.getPhoneNumber());
+         }
+     
         return dto;
     }
+}

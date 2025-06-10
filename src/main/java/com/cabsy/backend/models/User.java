@@ -52,5 +52,9 @@ public class User {
     protected void onUpdate() {
         this.updatedAt = LocalDateTime.now();
     }
+
+    public Long getId() {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
 }
  
