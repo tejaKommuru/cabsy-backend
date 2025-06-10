@@ -1,6 +1,5 @@
 // src/main/java/com/cabsy/backend/services/impl/RideServiceImpl.java
 package com.cabsy.backend.services.impl;
-
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -11,13 +10,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.cabsy.backend.dtos.RideRequestDTO;
 import com.cabsy.backend.dtos.RideResponseDTO;
-import com.cabsy.backend.models.CabStatus;
 import com.cabsy.backend.models.Driver;
 import com.cabsy.backend.models.DriverStatus;
 import com.cabsy.backend.models.Ride;
 import com.cabsy.backend.models.RideStatus;
 import com.cabsy.backend.models.User;
-import com.cabsy.backend.repositories.CabRepository;
 import com.cabsy.backend.repositories.DriverRepository;
 import com.cabsy.backend.repositories.RideRepository;
 import com.cabsy.backend.repositories.UserRepository;
@@ -29,14 +26,13 @@ public class RideServiceImpl implements RideService {
     private final RideRepository rideRepository;
     private final UserRepository userRepository;
     private final DriverRepository driverRepository;
-    private final CabRepository cabRepository;
+    
 
     public RideServiceImpl(RideRepository rideRepository, UserRepository userRepository,
-                           DriverRepository driverRepository, CabRepository cabRepository) {
+                           DriverRepository driverRepository) {
         this.rideRepository = rideRepository;
         this.userRepository = userRepository;
         this.driverRepository = driverRepository;
-        this.cabRepository = cabRepository;
     }
 
     @Override
@@ -59,6 +55,7 @@ public class RideServiceImpl implements RideService {
         ride.setRequestTime(LocalDateTime.now());
 
         Ride savedRide = rideRepository.save(ride);
+        
 
         // TODO: Implement logic to find and assign a driver here or in a separate "matching" service
         // For now, we'll just return the requested ride.
@@ -106,25 +103,7 @@ public class RideServiceImpl implements RideService {
                     // This is a placeholder; actual calculation based on route taken.
                     ride.setActualFare(ride.getEstimatedFare() * 1.05); // Example: 5% more than estimated
                 }
-                // Set driver and cab back to AVAILABLE
-                if (ride.getDriver() != null) {
-                    ride.getDriver().setStatus(DriverStatus.AVAILABLE);
-                    driverRepository.save(ride.getDriver());
-                }
-                if (ride.getCab() != null) {
-                    ride.getCab().setStatus(CabStatus.AVAILABLE);
-                    cabRepository.save(ride.getCab());
-                }
-            } else if (newStatus == RideStatus.CANCELLED) {
-                 // Handle cancellation logic (e.g., free up driver/cab if assigned)
-                 if (ride.getDriver() != null) {
-                    ride.getDriver().setStatus(DriverStatus.AVAILABLE);
-                    driverRepository.save(ride.getDriver());
-                }
-                if (ride.getCab() != null) {
-                    ride.getCab().setStatus(CabStatus.AVAILABLE);
-                    cabRepository.save(ride.getCab());
-                }
+        
             }
 
             Ride updatedRide = rideRepository.save(ride);
@@ -133,6 +112,7 @@ public class RideServiceImpl implements RideService {
     }
 
     @Override
+    @Transactional
     public Optional<RideResponseDTO> getRideById(Long rideId) {
         return rideRepository.findById(rideId).map(this::mapToRideResponseDTO);
     }
@@ -186,7 +166,6 @@ public class RideServiceImpl implements RideService {
         dto.setId(ride.getId());
         dto.setUserId(ride.getUser().getId());
         dto.setDriverId(ride.getDriver() != null ? ride.getDriver().getId() : null);
-        dto.setCabId(ride.getCab() != null ? ride.getCab().getId() : null);
         dto.setPickupLat(ride.getPickupLat());
         dto.setPickupLon(ride.getPickupLon());
         dto.setDestinationLat(ride.getDestinationLat());
@@ -202,13 +181,12 @@ public class RideServiceImpl implements RideService {
     
         return dto;
     }
-    
+
     private RideResponseDTO mapToRideAssignResponseDTO(Ride ride) {
         RideResponseDTO dto = new RideResponseDTO();
         dto.setId(ride.getId());
         dto.setUserId(ride.getUser().getId());
         dto.setDriverId(ride.getDriver() != null ? ride.getDriver().getId() : null);
-        dto.setCabId(ride.getCab() != null ? ride.getCab().getId() : null);
         dto.setPickupLat(ride.getPickupLat());
         dto.setPickupLon(ride.getPickupLon());
         dto.setDestinationLat(ride.getDestinationLat());
@@ -222,15 +200,5 @@ public class RideServiceImpl implements RideService {
         dto.setStartTime(ride.getStartTime());
         dto.setEndTime(ride.getEndTime());
     
-        // ✅ Add user details
-        User user = ride.getUser();
-        if (user != null) {
-            dto.setUserName(user.getName());
-            dto.setUserEmail(user.getEmail());
-            dto.setUserPhone(user.getPhoneNumber());
-        }
-    
         return dto;
     }
-    
-}

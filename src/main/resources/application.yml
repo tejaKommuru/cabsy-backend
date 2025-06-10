@@ -1,8 +1,5 @@
 # application.yml
-
 spring:
-  main:
-    banner-mode: off
   application:
     name: cabsy-backend
   datasource:
@@ -21,14 +18,14 @@ spring:
         format_sql: true
     open-in-view: false # Recommended for REST APIs to prevent N+1 issues
   # Other Spring Boot properties...
-
+ 
 cors:
   allowedOrigin: 'http://localhost:3000' # Your frontend URL, or '*' for all origins (DEV ONLY)
   allowedMethods: 'GET,POST,PUT,DELETE,OPTIONS'
   allowedHeaders: 'Authorization,Content-Type,Accept'
   allowedCredentials: true
   corsConfiguration: '/**'
-
+ 
 logging:
   level:
     root: WARN

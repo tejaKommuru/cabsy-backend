@@ -42,8 +42,7 @@ public class Driver {
     // Removed: currentLocationLat and currentLocationLon
 
     // One-to-one relationship with Cab
-    @OneToOne(mappedBy = "driver", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
-    private Cab cab;
+    
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;

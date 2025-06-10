@@ -22,7 +22,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
 @Table(name = "rides")
@@ -42,9 +41,7 @@ public class Ride {
     @JoinColumn(name = "driver_id") // Can be null if not yet assigned
     private Driver driver;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "cab_id") // Can be null if not yet assigned
-    private Cab cab;
+    
 
     @Column(nullable = false)
     private Double pickupLat;
