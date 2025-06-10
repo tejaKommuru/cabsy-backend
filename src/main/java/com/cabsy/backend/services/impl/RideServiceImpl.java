@@ -105,18 +105,7 @@ public class RideServiceImpl implements RideService {
                     // This is a placeholder; actual calculation based on route taken.
                     ride.setActualFare(ride.getEstimatedFare() * 1.05); // Example: 5% more than estimated
                 }
-                // Set driver and cab back to AVAILABLE
-                if (ride.getDriver() != null) {
-                    ride.getDriver().setStatus(DriverStatus.AVAILABLE);
-                    driverRepository.save(ride.getDriver());
-                }
         
-            } else if (newStatus == RideStatus.CANCELLED) {
-                 // Handle cancellation logic (e.g., free up driver/cab if assigned)
-                 if (ride.getDriver() != null) {
-                    ride.getDriver().setStatus(DriverStatus.AVAILABLE);
-                    driverRepository.save(ride.getDriver());
-                }
             }
 
             Ride updatedRide = rideRepository.save(ride);
@@ -200,7 +189,6 @@ public class RideServiceImpl implements RideService {
         dto.setId(ride.getId());
         dto.setUserId(ride.getUser().getId());
         dto.setDriverId(ride.getDriver() != null ? ride.getDriver().getId() : null);
-        dto.setCabId(ride.getCab() != null ? ride.getCab().getId() : null);
         dto.setPickupLat(ride.getPickupLat());
         dto.setPickupLon(ride.getPickupLon());
         dto.setDestinationLat(ride.getDestinationLat());
