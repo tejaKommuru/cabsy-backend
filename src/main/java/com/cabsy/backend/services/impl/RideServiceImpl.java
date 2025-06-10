@@ -7,14 +7,10 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
-<<<<<<< HEAD
 import org.springframework.transaction.annotation.Transactional;
-=======
->>>>>>> 3646082fc298e5c2e0f49f3a5f2ac76a389de774
 
 import com.cabsy.backend.dtos.RideRequestDTO;
 import com.cabsy.backend.dtos.RideResponseDTO;
-import com.cabsy.backend.models.Cab;
 import com.cabsy.backend.models.CabStatus;
 import com.cabsy.backend.models.Driver;
 import com.cabsy.backend.models.DriverStatus;
@@ -26,11 +22,6 @@ import com.cabsy.backend.repositories.DriverRepository;
 import com.cabsy.backend.repositories.RideRepository;
 import com.cabsy.backend.repositories.UserRepository;
 import com.cabsy.backend.services.RideService;
-<<<<<<< HEAD
-=======
-
-import jakarta.transaction.Transactional;
->>>>>>> 3646082fc298e5c2e0f49f3a5f2ac76a389de774
 
 @Service
 public class RideServiceImpl implements RideService {
@@ -95,7 +86,7 @@ public class RideServiceImpl implements RideService {
         driverRepository.save(driver); // Update driver status
         Ride updatedRide = rideRepository.save(ride);
 
-        return mapToRideResponseDTO(updatedRide);
+        return mapToRideAssignResponseDTO(updatedRide);
     }
 
     @Override
@@ -160,7 +151,6 @@ public class RideServiceImpl implements RideService {
                 .map(this::mapToRideResponseDTO)
                 .collect(Collectors.toList());
     }
-<<<<<<< HEAD
     
     @Override
     @Transactional
@@ -170,9 +160,6 @@ public class RideServiceImpl implements RideService {
      .collect(Collectors.toList());
      }
     
-=======
-
->>>>>>> 3646082fc298e5c2e0f49f3a5f2ac76a389de774
     // --- Helper methods ---
 
     private Double calculateEstimatedFare(Double pickupLat, Double pickupLon, Double destLat, Double destLon) {
@@ -213,6 +200,28 @@ public class RideServiceImpl implements RideService {
         dto.setStartTime(ride.getStartTime());
         dto.setEndTime(ride.getEndTime());
     
+        return dto;
+    }
+    
+    private RideResponseDTO mapToRideAssignResponseDTO(Ride ride) {
+        RideResponseDTO dto = new RideResponseDTO();
+        dto.setId(ride.getId());
+        dto.setUserId(ride.getUser().getId());
+        dto.setDriverId(ride.getDriver() != null ? ride.getDriver().getId() : null);
+        dto.setCabId(ride.getCab() != null ? ride.getCab().getId() : null);
+        dto.setPickupLat(ride.getPickupLat());
+        dto.setPickupLon(ride.getPickupLon());
+        dto.setDestinationLat(ride.getDestinationLat());
+        dto.setDestinationLon(ride.getDestinationLon());
+        dto.setPickupAddress(ride.getPickupAddress());
+        dto.setDestinationAddress(ride.getDestinationAddress());
+        dto.setStatus(ride.getStatus());
+        dto.setEstimatedFare(ride.getEstimatedFare());
+        dto.setActualFare(ride.getActualFare());
+        dto.setRequestTime(ride.getRequestTime());
+        dto.setStartTime(ride.getStartTime());
+        dto.setEndTime(ride.getEndTime());
+    
         // ✅ Add user details
         User user = ride.getUser();
         if (user != null) {
@@ -223,20 +232,5 @@ public class RideServiceImpl implements RideService {
     
         return dto;
     }
-<<<<<<< HEAD
     
-=======
-
-    @Override
-    public List<Ride> getPreviousRidesByDriver(Long driverId) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getPreviousRidesByDriver'");
-    }
-
-    @Override
-    public List<Ride> getAvailableRides() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getAvailableRides'");
-    }
->>>>>>> 3646082fc298e5c2e0f49f3a5f2ac76a389de774
 }
