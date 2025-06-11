@@ -35,6 +35,5 @@ public class UserController {
         return ResponseEntity.ok(ApiResponse.success("Users fetched successfully", users));
     }
 
-    // TODO: Add PUT mapping for updating user profile
-    // TODO: Add DELETE mapping for deleting user (requires careful consideration)
+    
 }
