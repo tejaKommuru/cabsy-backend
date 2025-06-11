@@ -11,9 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.cabsy.backend.dtos.RideRequestDTO;
 import com.cabsy.backend.dtos.RideResponseDTO;
-
 import com.cabsy.backend.models.Driver;
-import com.cabsy.backend.models.DriverStatus;
 import com.cabsy.backend.models.Ride;
 import com.cabsy.backend.models.RideStatus;
 import com.cabsy.backend.models.User;
@@ -52,6 +50,9 @@ public class RideServiceImpl implements RideService {
         ride.setPickupAddress(rideRequest.getPickupAddress());
         ride.setDestinationAddress(rideRequest.getDestinationAddress());
         ride.setStatus(RideStatus.REQUESTED);
+        ride.setActualFare(calculateEstimatedFare(rideRequest.getPickupLat(), rideRequest.getPickupLon(),
+                                                    rideRequest.getDestinationLat(), rideRequest.getDestinationLon()));
+        
         ride.setEstimatedFare(calculateEstimatedFare(rideRequest.getPickupLat(), rideRequest.getPickupLon(),
                                                     rideRequest.getDestinationLat(), rideRequest.getDestinationLon()));
         ride.setRequestTime(LocalDateTime.now());
@@ -109,7 +110,7 @@ public class RideServiceImpl implements RideService {
             }
 
             Ride updatedRide = rideRepository.save(ride);
-            return mapToRideResponseDTO(updatedRide);
+            return mapToRideAssignResponseDTO(updatedRide);
         }).orElseThrow(() -> new RuntimeException("Ride not found with id: " + rideId));
     }
 
