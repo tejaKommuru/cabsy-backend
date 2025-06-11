@@ -146,7 +146,7 @@ public class RideServiceImpl implements RideService {
         // For now, a simple fixed rate per km (e.g., based on Haversine distance).
         // This is a placeholder.
         double distanceKm = calculateHaversineDistance(pickupLat, pickupLon, destLat, destLon);
-        return distanceKm * 10.0; // Example: 10 units per km
+        return distanceKm * 15; // Example: 10 units per km
     }
 
     private double calculateHaversineDistance(Double lat1, Double lon1, Double lat2, Double lon2) {
