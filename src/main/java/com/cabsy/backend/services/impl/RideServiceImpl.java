@@ -11,7 +11,6 @@ import org.springframework.transaction.annotation.Transactional;
 import com.cabsy.backend.dtos.RideRequestDTO;
 import com.cabsy.backend.dtos.RideResponseDTO;
 import com.cabsy.backend.models.Driver;
-import com.cabsy.backend.models.DriverStatus;
 import com.cabsy.backend.models.Ride;
 import com.cabsy.backend.models.RideStatus;
 import com.cabsy.backend.models.User;
