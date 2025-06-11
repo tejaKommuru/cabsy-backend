@@ -1,6 +1,6 @@
 // src/main/java/com/cabsy/backend/controllers/AuthController.java
 package com.cabsy.backend.controllers;
-
+import java.util.*;
 import java.util.Map;
 import java.util.Optional;
 
@@ -129,6 +129,7 @@ public class AuthController {
             UserResponseDTO newUser = userService.registerUser(registrationDTO);
             return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success("User registered successfully", newUser));
         } catch (RuntimeException e) { // Catch specific exceptions for better error messages
+            System.out.println(e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponse.error("User registration failed", e.getMessage()));
         }
     }
