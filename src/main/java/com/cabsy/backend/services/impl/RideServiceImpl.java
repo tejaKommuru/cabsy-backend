@@ -127,7 +127,7 @@ public class RideServiceImpl implements RideService {
     @Transactional
     public List<RideResponseDTO> getPreviousRidesByDriverId(Long driverId) {
         return rideRepository.findByDriverIdAndStatus(driverId, RideStatus.COMPLETED).stream()
-                .map(this::mapToRideResponseDTO)
+                .map(this::mapToRideAssignResponseDTO)
                 .collect(Collectors.toList());
     }
     
@@ -135,7 +135,7 @@ public class RideServiceImpl implements RideService {
     @Transactional
     public List<RideResponseDTO> getAvailableRides() {
      return rideRepository.findByStatus(RideStatus.REQUESTED).stream()
-     .map(this::mapToRideResponseDTO)
+     .map(this::mapToRideAssignResponseDTO)
      .collect(Collectors.toList());
      }
     
