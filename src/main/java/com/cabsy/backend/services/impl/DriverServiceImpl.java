@@ -16,7 +16,6 @@ import com.cabsy.backend.repositories.DriverRepository;
 import com.cabsy.backend.services.DriverService;
 
 import jakarta.persistence.EntityNotFoundException;
-
 import jakarta.transaction.Transactional;
 
 @Service
@@ -80,6 +79,17 @@ public class DriverServiceImpl implements DriverService {
     }
 
     @Override
+    public Driver updateDriverProfile(Long id, DriverRegistrationDTO dto) {
+        Driver driver = driverRepository.findById(id)
+        .orElseThrow(() -> new EntityNotFoundException("Driver not found"));
+        driver.setName(dto.getName());
+        driver.setEmail(dto.getEmail());
+        driver.setPhoneNumber(dto.getPhoneNumber());
+        driver.setLicenseNumber(dto.getLicenseNumber());
+        return driverRepository.save(driver);
+        }
+
+    @Override
     public Optional<Driver> findDriverByEmail(String email) {
         return driverRepository.findByEmail(email);
     }
@@ -117,17 +127,4 @@ public class DriverServiceImpl implements DriverService {
         }).orElseThrow(() -> new RuntimeException("Driver not found with id: " + driverId));
     }
 
-    
-public Driver updateDriverProfile(Long id, DriverRegistrationDTO dto) {
-     Driver driver = driverRepository.findById(id)
-     .orElseThrow(() -> new EntityNotFoundException("Driver not found"));
-    
-     driver.setName(dto.getName());
-     driver.setEmail(dto.getEmail());
-     driver.setPhoneNumber(dto.getPhoneNumber());
-     driver.setLicenseNumber(dto.getLicenseNumber());
-    
-     return driverRepository.save(driver);
-     }
-    
 }
