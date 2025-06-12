@@ -1,7 +1,18 @@
 // src/main/java/com/cabsy/backend/controllers/AuthController.java
 package com.cabsy.backend.controllers;
-
+import java.util.*;
 import java.util.Map;
+import java.util.Optional;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import com.cabsy.backend.dtos.ApiResponse;
 import com.cabsy.backend.dtos.DriverRegistrationDTO;
@@ -12,20 +23,7 @@ import com.cabsy.backend.dtos.UserResponseDTO;
 import com.cabsy.backend.services.DriverService;
 import com.cabsy.backend.services.UserService;
 
-import java.util.Optional;
-
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
 import jakarta.validation.Valid; // For DTO validation
-
-import org.springframework.security.crypto.password.PasswordEncoder; // Needed for login check
 
 @RestController
 @RequestMapping("/api/auth")
@@ -40,19 +38,41 @@ public class AuthController {
         this.driverService = driverService;
         this.passwordEncoder = passwordEncoder;
     }
+    
+    @PostMapping("/change-password")
+    public ResponseEntity<ApiResponse<Void>> changePasswordByEmail(@RequestBody Map<String, String> requestBody) {
+        String email = requestBody.get("email");
+        String newPassword = requestBody.get("password"); // Your Node.js app sends 'password'
+        String userType = requestBody.get("userType"); // Expected from Node.js app
 
-    // @PutMapping("/user/name")
-    // public User updateName(@RequestParam String name,@RequestParam String id){
-        
-    //     try{
-    //     User u = userService.updateName(name,id);
-    //     return u;
-    //     }catch(Exception e){
-    //         System.out.println("there is some error"+e);
-    //     }
-    //     return null;
-    // }
+        if (email == null || email.trim().isEmpty() ||
+            newPassword == null || newPassword.trim().isEmpty() ||
+            userType == null || userType.trim().isEmpty()) {
+            return ResponseEntity.badRequest().body(ApiResponse.error("Validation Error", "Email, new password, and user type are required."));
+        }
 
+        try {
+            if ("captain".equalsIgnoreCase(userType)) {
+                driverService.updatePasswordByEmail(email, newPassword);
+            } else if ("rider".equalsIgnoreCase(userType) || "user".equalsIgnoreCase(userType)) { // Assuming "rider" is equivalent to "user"
+                userService.updatePasswordByEmail(email, newPassword);
+            } else {
+                return ResponseEntity.badRequest().body(ApiResponse.error("Invalid User Type", "User type must be 'driver' or 'rider'."));
+            }
+            return ResponseEntity.ok(ApiResponse.success("Password updated successfully!", null));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(ApiResponse.error("Password Update Failed", e.getMessage()));
+        } catch (RuntimeException e) {
+            // This would catch "User not found" or "Driver not found" from services
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.error("Password Update Failed", e.getMessage()));
+        } catch (Exception e) {
+            System.err.println("An unexpected error occurred during password change: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ApiResponse.error("Password Update Failed", "An internal server error occurred."));
+        }
+    }
+
+ 
     @PutMapping("/user/{field}/{id}")
     public ResponseEntity<ApiResponse<UserResponseDTO>> updateUserInfo(
             @RequestBody Map<String, String> requestBody,
@@ -131,6 +151,7 @@ public class AuthController {
             UserResponseDTO newUser = userService.registerUser(registrationDTO);
             return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success("User registered successfully", newUser));
         } catch (RuntimeException e) { // Catch specific exceptions for better error messages
+            System.out.println(e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponse.error("User registration failed", e.getMessage()));
         }
     }

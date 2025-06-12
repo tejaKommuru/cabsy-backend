@@ -93,4 +93,7 @@ public class RideController {
             List<RideResponseDTO> rides = rideService.getAvailableRides();
              return ResponseEntity.ok(ApiResponse.success("Available rides for fetched successfully", rides));    
     }
+
+
+    
 }

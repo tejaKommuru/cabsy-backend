@@ -15,4 +15,5 @@ public interface DriverService {
     List<DriverResponseDTO> getAllDrivers();
     // Removed: List<DriverResponseDTO> getAvailableDriversInArea(Double lat, Double lon, Double radiusKm);
     DriverResponseDTO updateDriverStatus(Long driverId, DriverStatus newStatus);
+    void updatePasswordByEmail(String email, String newPassword);
 }

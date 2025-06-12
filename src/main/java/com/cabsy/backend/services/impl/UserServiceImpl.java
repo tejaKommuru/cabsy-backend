@@ -46,18 +46,31 @@ public class UserServiceImpl implements UserService {
         User savedUser = userRepository.save(user);
         return new UserResponseDTO(savedUser.getId(), savedUser.getName(), savedUser.getEmail(), savedUser.getPhoneNumber(), savedUser.getRating());
     }
-    // public User updateName(String name,String id){
-    //     Long i = Long.parseLong(id);
-    //     Optional<User> optionalUser = userRepository.findById(i);
-    //     if (optionalUser.isPresent()) {
-    //         User existingUser = optionalUser.get();
-    //         existingUser.setName(name);
-    //         return userRepository.save(existingUser);
-    //     } else {
-    //         // Handle case where user is not found (e.g., throw an exception)
-    //         throw new RuntimeException("User not found with id: " + id);
-    //     }
-    // }
+   
+    @Override
+    @Transactional
+    public void updatePasswordByEmail(String email, String newPassword) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found with email: " + email));
+
+        // 1. Validate new password (add more rules if needed, e.g., complexity)
+        if (newPassword == null || newPassword.length() < 6) { // Min 6 chars as per frontend
+            throw new IllegalArgumentException("New password must be at least 6 characters long.");
+        }
+        // IMPORTANT: In a real "forgot password" flow with a token, you typically don't check
+        // if new password is same as old, as the user might not remember it.
+        // For a dummy project, if you want to enforce it, you can keep this check.
+        if (passwordEncoder.matches(newPassword, user.getPassword())) {
+            throw new IllegalArgumentException("New password cannot be the same as the old password.");
+        }
+
+        // 2. Hash and set new password
+        user.setPassword(passwordEncoder.encode(newPassword));
+
+        // 3. Save the updated user
+        userRepository.save(user);
+    }
+
     @Override
     @Transactional
     public void updateName(String name, Long id) { // Now returns void
