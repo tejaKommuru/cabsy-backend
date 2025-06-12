@@ -18,4 +18,5 @@ public interface UserService {
     void updatePhoneNumber(String newPhoneNumber,Long userId);
     void updatePassword(String oldPassword, String newPassword, Long userId);
     // Add methods for updating profile, etc.
+    void updatePasswordByEmail(String email, String newPassword);
 }

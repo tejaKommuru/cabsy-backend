@@ -32,6 +32,27 @@ public class DriverServiceImpl implements DriverService {
 
     @Override
     @Transactional
+    public void updatePasswordByEmail(String email, String newPassword) {
+        Driver driver = driverRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Driver not found with email: " + email));
+
+        // 1. Validate new password
+        if (newPassword == null || newPassword.length() < 6) { // Min 6 chars
+            throw new IllegalArgumentException("New password must be at least 6 characters long.");
+        }
+        if (passwordEncoder.matches(newPassword, driver.getPassword())) {
+            throw new IllegalArgumentException("New password cannot be the same as the old password.");
+        }
+
+        // 2. Hash and set new password
+        driver.setPassword(passwordEncoder.encode(newPassword));
+
+        // 3. Save the updated driver
+        driverRepository.save(driver);
+    }
+
+    @Override
+    @Transactional
     public DriverResponseDTO registerDriver(DriverRegistrationDTO registrationDTO) {
         if (driverRepository.findByEmail(registrationDTO.getEmail()).isPresent()) {
             throw new RuntimeException("Driver with this email already exists");
