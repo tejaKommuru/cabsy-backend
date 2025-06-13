@@ -129,5 +129,4 @@ public Driver updateDriverProfile(Long id, DriverRegistrationDTO dto) {
     
      return driverRepository.save(driver);
      }
-    
 }
