@@ -113,7 +113,7 @@ public class RideServiceImpl implements RideService {
     @Override
     @Transactional
     public Optional<RideResponseDTO> getRideById(Long rideId) {
-        return rideRepository.findById(rideId).map(this::mapToRideResponseDTO);
+        return rideRepository.findById(rideId).map(this::mapToRideAssignResponseDTO);
     }
 
     @Override
