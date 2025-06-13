@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
+import com.cabsy.backend.models.Driver;
 import com.cabsy.backend.dtos.ApiResponse;
 import com.cabsy.backend.dtos.DriverRegistrationDTO;
 import com.cabsy.backend.dtos.DriverResponseDTO;
@@ -23,6 +23,7 @@ import com.cabsy.backend.dtos.UserResponseDTO;
 import com.cabsy.backend.services.DriverService;
 import com.cabsy.backend.services.UserService;
 
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid; // For DTO validation
 
 @RestController
@@ -213,4 +214,18 @@ public class AuthController {
             })
             .orElseGet(() -> ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ApiResponse.error("Login failed", "Invalid credentials")));
     }
+
+
+
+     @PostMapping("driver/{id}")
+     public ResponseEntity<?> updateDriverProfile(@PathVariable Long id, @RequestBody DriverRegistrationDTO updateDTO) {
+     try {
+     Driver updatedDriver = driverService.updateDriverProfile(id, updateDTO);
+     return ResponseEntity.ok(updatedDriver);
+     } catch (EntityNotFoundException e) {
+     return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Driver not found");
+     } catch (Exception e) {
+     return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error updating driver profile");
+     }
+     }
 }
