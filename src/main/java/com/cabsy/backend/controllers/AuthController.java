@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import com.cabsy.backend.models.Driver;
 import com.cabsy.backend.dtos.ApiResponse;
+import com.cabsy.backend.dtos.ChangePasswordRequest;
 import com.cabsy.backend.dtos.DriverRegistrationDTO;
 import com.cabsy.backend.dtos.DriverResponseDTO;
 import com.cabsy.backend.dtos.LoginDTO;
@@ -239,4 +240,22 @@ public class AuthController {
      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error updating driver profile");
      }
      }
+
+    @PutMapping("driver/{driverId}/password") // Maps to /driver/{driverId}/password
+    public ResponseEntity<?> changeDriverPassword(
+        @PathVariable Long driverId,
+        @Valid @RequestBody ChangePasswordRequest request) {
+        try {
+            // Call the service layer to perform the password change
+            driverService.changeDriverPassword(driverId, request); 
+            
+            return ResponseEntity.ok("Password updated successfully.");
+        } catch (IllegalArgumentException e) {
+            // Catch specific validation or business logic errors from the service layer
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        } catch (Exception e) {
+            // Catch any unexpected errors
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        }
+    }
 }

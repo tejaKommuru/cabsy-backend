@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.cabsy.backend.dtos.ChangePasswordRequest;
 import com.cabsy.backend.dtos.DriverRegistrationDTO;
 import com.cabsy.backend.dtos.DriverResponseDTO;
 import com.cabsy.backend.models.Driver;
@@ -126,4 +127,27 @@ public class DriverServiceImpl implements DriverService {
                     updatedDriver.getLicenseNumber(), updatedDriver.getStatus(), updatedDriver.getRating());
         }).orElseThrow(() -> new RuntimeException("Driver not found with id: " + driverId));
     }
+
+    @Transactional
+    // FIX: Method signature to accept Long driverId
+    public void changeDriverPassword(Long driverId, ChangePasswordRequest request) {
+        Driver driver = driverRepository.findById(driverId)
+                .orElseThrow(() -> new IllegalArgumentException("Driver not found with ID: " + driverId));
+
+        if (!passwordEncoder.matches(request.getOldPassword(), driver.getPassword())) {
+            throw new IllegalArgumentException("Incorrect old password. Password change failed.");
+        }
+
+        if (request.getNewPassword().length() < 8) {
+            throw new IllegalArgumentException("New password must be at least 8 characters long.");
+        }
+        if (passwordEncoder.matches(request.getNewPassword(), driver.getPassword())) {
+             throw new IllegalArgumentException("New password cannot be the same as the old password.");
+        }
+
+        String newHashedPassword = passwordEncoder.encode(request.getNewPassword());
+        driver.setPassword(newHashedPassword);
+        driverRepository.save(driver);
+    }
+    
 }

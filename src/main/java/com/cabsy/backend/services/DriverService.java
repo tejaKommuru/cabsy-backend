@@ -4,6 +4,7 @@ package com.cabsy.backend.services;
 import java.util.List;
 import java.util.Optional;
 
+import com.cabsy.backend.dtos.ChangePasswordRequest;
 import com.cabsy.backend.dtos.DriverRegistrationDTO;
 import com.cabsy.backend.dtos.DriverResponseDTO;
 import com.cabsy.backend.models.Driver;
@@ -18,4 +19,5 @@ public interface DriverService {
     DriverResponseDTO updateDriverStatus(Long driverId, DriverStatus newStatus);
     Driver updateDriverProfile(Long id, DriverRegistrationDTO dto);
     void updatePasswordByEmail(String email, String newPassword);
+    void changeDriverPassword(Long id,ChangePasswordRequest request);
 }
