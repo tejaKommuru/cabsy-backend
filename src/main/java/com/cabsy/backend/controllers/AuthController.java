@@ -225,4 +225,18 @@ public class AuthController {
             })
             .orElseGet(() -> ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ApiResponse.error("Login failed", "Invalid credentials")));
     }
+
+
+
+     @PostMapping("driver/{id}")
+     public ResponseEntity<?> updateDriverProfile(@PathVariable Long id, @RequestBody DriverRegistrationDTO updateDTO) {
+     try {
+     Driver updatedDriver = driverService.updateDriverProfile(id, updateDTO);
+     return ResponseEntity.ok(updatedDriver);
+     } catch (EntityNotFoundException e) {
+     return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Driver not found");
+     } catch (Exception e) {
+     return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error updating driver profile");
+     }
+     }
 }

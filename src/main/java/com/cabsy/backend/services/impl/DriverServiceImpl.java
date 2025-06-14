@@ -126,5 +126,4 @@ public class DriverServiceImpl implements DriverService {
                     updatedDriver.getLicenseNumber(), updatedDriver.getStatus(), updatedDriver.getRating());
         }).orElseThrow(() -> new RuntimeException("Driver not found with id: " + driverId));
     }
-
 }
